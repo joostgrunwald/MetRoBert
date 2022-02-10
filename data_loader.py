@@ -1,7 +1,9 @@
-import numpy as np
+
+#?##########
+#* IMPORTS #
+#?##########
 
 import torch
-import torch.nn as nn
 
 from sklearn.model_selection import StratifiedKFold
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, TensorDataset
@@ -11,6 +13,9 @@ from run_classifier_dataset_utils import (
     convert_two_examples_to_features,
 )
 
+#?############
+#* FUNCTIONS #
+#?############
 
 def load_train_data(
     args, logger, processor, task_name, label_list, tokenizer, output_mode, k=None
@@ -23,12 +28,13 @@ def load_train_data(
     else:
         raise ("task_name should be 'vua' or 'trofi'!")
 
-    #debug
-    # for example in train_examples:
-     #   print(example.text_a)
-      #  print(example.text_b)
-       #rint(example.POS)
-    # make features file
+    #DEBUG
+    #for example in train_examples:
+    #   print(example.text_a)
+    #   print(example.text_b)
+    #   print(example.POS)
+    #   make features file
+    
     if args.model_type == "BERT_BASE":
         train_features = convert_two_examples_to_features(
             train_examples, label_list, args.max_seq_length, tokenizer, output_mode
@@ -89,12 +95,9 @@ def load_train_data(
             all_input_ids, all_input_mask, all_segment_ids, all_label_ids
         )
     train_sampler = RandomSampler(train_data)
-    train_dataloader = DataLoader(
+    return DataLoader(
         train_data, sampler=train_sampler, batch_size=args.train_batch_size
     )
-
-    return train_dataloader
-
 
 def load_train_data_kf(
     args, logger, processor, task_name, label_list, tokenizer, output_mode, k=None
@@ -208,7 +211,7 @@ def load_test_data(
             [f.segment_ids for f in eval_features], dtype=torch.long
         )
         all_guids = [f.guid for f in eval_features]
-        all_idx = torch.tensor([i for i in range(len(eval_features))], dtype=torch.long)
+        all_idx = torch.tensor(list(range(len(eval_features))), dtype=torch.long)
         all_label_ids = torch.tensor(
             [f.label_id for f in eval_features], dtype=torch.long
         )
@@ -242,7 +245,7 @@ def load_test_data(
             [f.segment_ids for f in eval_features], dtype=torch.long
         )
         all_guids = [f.guid for f in eval_features]
-        all_idx = torch.tensor([i for i in range(len(eval_features))], dtype=torch.long)
+        all_idx = torch.tensor(list(range(len(eval_features))), dtype=torch.long)
         all_label_ids = torch.tensor(
             [f.label_id for f in eval_features], dtype=torch.long
         )
@@ -294,7 +297,7 @@ def load_dev_data(
             [f.segment_ids for f in dev_features], dtype=torch.long
         )
         all_guids = [f.guid for f in dev_features]
-        all_idx = torch.tensor([i for i in range(len(dev_features))], dtype=torch.long)
+        all_idx = torch.tensor(list(range(len(dev_features))), dtype=torch.long)
         all_label_ids = torch.tensor(
             [f.label_id for f in dev_features], dtype=torch.long
         )
@@ -328,7 +331,7 @@ def load_dev_data(
             [f.segment_ids for f in dev_features], dtype=torch.long
         )
         all_guids = [f.guid for f in dev_features]
-        all_idx = torch.tensor([i for i in range(len(dev_features))], dtype=torch.long)
+        all_idx = torch.tensor(list(range(len(dev_features))), dtype=torch.long)
         all_label_ids = torch.tensor(
             [f.label_id for f in dev_features], dtype=torch.long
         )
