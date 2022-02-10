@@ -8,6 +8,7 @@ import sys
 import random
 import copy
 import numpy as np
+import pickle
 
 import torch
 import torch.nn as nn
@@ -16,6 +17,7 @@ from colorama import Fore
 from tqdm import tqdm, trange
 from collections import OrderedDict
 from transformers import AutoModel, AdamW, get_linear_schedule_with_warmup, RobertaTokenizer
+from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, TensorDataset
 
 #! Imports from other python file of this module
 from utils import Config, Logger, make_log_dir
@@ -27,7 +29,7 @@ from modeling import (
     AutoModelForSequenceClassification_SPV_MIP,
 )
 from run_classifier_dataset_utils import processors, output_modes, compute_metrics
-from data_loader import load_train_data, load_test_data, load_dev_data
+from data_loader import load_train_data, load_test_data, load_dev_data, load_train_data_kf
 
 CONFIG_NAME = "config.json"
 WEIGHTS_NAME = "pytorch_model.bin"
@@ -154,6 +156,45 @@ def main():
     tokenizer = RobertaTokenizer.from_pretrained(
         "pdelobelle/robbert-v2-dutch-base", do_lower_case=args.do_lower_case)
     model = load_pretrained_model(args)
+    
+    #!########## Training ###########
+    #! VUA-18 / VUA-20 with bagging
+    if args.do_train and args.task_name == "vua" and args.num_bagging:
+        train_data, gkf = load_train_data_kf(args, logger, processor, task_name, label_list, tokenizer, output_mode)
+
+        for fold, (train_idx, valid_idx) in enumerate(tqdm(gkf, desc="bagging...")):
+            if fold != args.bagging_index:
+                continue
+
+            print(f"bagging_index = {args.bagging_index}")
+
+            # Load data
+            temp_train_data = TensorDataset(*train_data[train_idx])
+            train_sampler = RandomSampler(temp_train_data)
+            train_dataloader = DataLoader(temp_train_data, sampler=train_sampler, batch_size=args.train_batch_size)
+
+            # Reset Model
+            model = load_pretrained_model(args)
+            model, best_result = run_train(args, logger, model, train_dataloader, processor, task_name, label_list, tokenizer, output_mode)
+
+            # Test
+            all_guids, eval_dataloader = load_test_data(args, logger, processor, task_name, label_list, tokenizer, output_mode)
+            preds = run_eval(args, logger, model, eval_dataloader, all_guids, task_name, return_preds=True)
+            with open(os.path.join(args.data_dir, f"seed{args.seed}_preds_{fold}.p"), "wb") as f:
+                pickle.dump(preds, f)
+
+            # If train data is VUA20, the model needs to be tested on VUAverb, MOH-X, TroFi as well.
+            # You can just adjust the names of data_dir in conditions below for your own data directories.
+            # if "VUA20" in args.data_dir:
+            #     # Verb
+            #     args.data_dir = "data/VUAverb"
+            #     all_guids, eval_dataloader = load_test_data(args, logger, processor, task_name, label_list, tokenizer, output_mode)
+            #     preds = run_eval(args, logger, model, eval_dataloader, all_guids, task_name, return_preds=True)
+            #     with open(os.path.join(args.data_dir, f"seed{args.seed}_preds_{fold}.p"), "wb") as f:
+            #         pickle.dump(preds, f)
+
+            logger.info(f"Saved to {logger.log_dir}")
+        return                
 
     #!########## Training ###########
     #! VUA-18 / VUA-20
