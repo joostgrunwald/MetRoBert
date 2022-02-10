@@ -29,7 +29,7 @@ from modeling import (
     AutoModelForSequenceClassification_SPV_MIP_optima_manual
 )
 from run_classifier_dataset_utils import processors, output_modes, compute_metrics
-from data_loader import load_train_data, load_train_data_kf, load_test_data
+from data_loader import load_train_data, load_test_data
 
 CONFIG_NAME = "config.json"
 WEIGHTS_NAME = "pytorch_model.bin"
@@ -938,10 +938,10 @@ def load_pretrained_model(trial, args):
     if args.model_type == "MELBERT":
         if optuna_tweak_hidden_layers == True:
             model = AutoModelForSequenceClassification_SPV_MIP_optima(
-               trial, args=args, Model=bert, config=config, num_labels=args.num_labels
+                trial, args=args, Model=bert, config=config, num_labels=args.num_labels
             )
         elif optuna_tweak_drop_ratio == True:
-             model = AutoModelForSequenceClassification_SPV_MIP_optima_drop(
+            model = AutoModelForSequenceClassification_SPV_MIP_optima_drop(
                 trial, args=args, Model=bert, config=config, num_labels=args.num_labels
             )
         else:

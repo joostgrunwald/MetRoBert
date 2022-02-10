@@ -68,7 +68,7 @@ def main():
     print("| |\/| |/ -_)| | | _ \| _| |   /  | |   ")
     print("|_|  |_|\___||_| |___/|___||_|_\  |_|   ")
     print("")
-    print(Fore.WHITE + "             NORMAL EDITION             ")
+    print(Fore.WHITE + "             OPTUNA EDITION             ")
 
     # * read configuration into config via /utils/Config.py
     config = Config(main_conf_path="./")
@@ -321,8 +321,8 @@ def run_train(
     max_result = {}
     for epoch in trange(int(args.num_train_epoch), desc="Epoch"):
         tr_loss = 0
-        for step, batch in enumerate(tqdm(train_dataloader, desc="Iteration",
-                                          bar_format="{l_bar}%s{bar}%s{r_bar}" % (Fore.LIGHTGREEN_EX, Fore.RESET))):
+        for step, batch in tqdm(train_dataloader, desc="Iteration",
+                                          bar_format="{l_bar}%s{bar}%s{r_bar}" % (Fore.LIGHTGREEN_EX, Fore.RESET)):
             # move batch data to gpu
             batch = tuple(t.to(args.device) for t in batch)
 
