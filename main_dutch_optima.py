@@ -4,7 +4,6 @@
 
 import os
 import sys
-import pickle
 import random
 import copy
 import numpy as np
@@ -15,8 +14,7 @@ import optuna
 
 from tqdm import tqdm, trange
 from collections import OrderedDict
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, TensorDataset
-from transformers import AutoTokenizer, AutoModel, AdamW, get_linear_schedule_with_warmup, RobertaTokenizer, RobertaForSequenceClassification, logging
+from transformers import AutoModel, AdamW, get_linear_schedule_with_warmup, RobertaTokenizer, logging
 
 #! Imports from other python file of this module
 from utils import Config, Logger, make_log_dir
