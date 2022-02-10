@@ -426,7 +426,7 @@ def run_train(
         logger.info(f"[epoch {epoch+1}] ,lr: {cur_lr} ,tr_loss: {tr_loss}")
 
         # ? evaluate
-        if args.do_eval:
+        if args.do_test:
             all_guids, eval_dataloader = load_test_data(
                 args, logger, processor, task_name, label_list, tokenizer, output_mode, k
             )
@@ -449,7 +449,7 @@ def run_train(
                     args, logger, model, eval_dataloader, all_guids, task_name, True)
                 for pred in predictions:
                     out.write(str(pred) + "\n")
-            if (save_dev_pred == True):
+            if (save_dev_pred == True and args.do_eval == True):
                 all_guids, dev_dataloader = load_dev_data(args, logger, processor, task_name, label_list, tokenizer, output_mode, k)
                 predictions = run_dev(
                     args, logger, model, dev_dataloader, all_guids, task_name)
