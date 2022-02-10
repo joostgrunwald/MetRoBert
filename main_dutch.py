@@ -223,7 +223,7 @@ def main():
             elif "pos" in args.data_dir:
                 targets = ["adj", "adv", "noun", "verb"]
             orig_data_dir = args.data_dir
-            for idx, target in tqdm(enumerate(targets)):
+            for target in tqdm(enumerate(targets)):
                 logger.info(
                     f"====================== Evaluating {target} =====================")
                 args.data_dir = os.path.join(orig_data_dir, target)
@@ -285,14 +285,23 @@ def run_train(
     no_decay = ["bias", "LayerNorm.bias", "LayerNorm.weight"]
     optimizer_grouped_parameters = [
         {
-            "params": [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)],
+            "params": [
+                p
+                for n, p in param_optimizer
+                if all(nd not in n for nd in no_decay)
+            ],
             "weight_decay": 0.01,
         },
         {
-            "params": [p for n, p in param_optimizer if any(nd in n for nd in no_decay)],
+            "params": [
+                p
+                for n, p in param_optimizer
+                if any(nd in n for nd in no_decay)
+            ],
             "weight_decay": 0.0,
         },
     ]
+
     optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate)
     if args.lr_schedule != False or args.lr_schedule.lower() != "none":
         scheduler = get_linear_schedule_with_warmup(
@@ -312,7 +321,7 @@ def run_train(
     max_result = {}
     for epoch in trange(int(args.num_train_epoch), desc="Epoch"):
         tr_loss = 0
-        for step, batch in enumerate(tqdm(train_dataloader, desc="Iteration",
+        for batch in enumerate(tqdm(train_dataloader, desc="Iteration",
                                           bar_format="{l_bar}%s{bar}%s{r_bar}" % (Fore.LIGHTGREEN_EX, Fore.RESET))):
             # move batch data to gpu
             batch = tuple(t.to(args.device) for t in batch)
@@ -404,9 +413,9 @@ def run_train(
                 predictions = run_dev(
                     args, logger, model, dev_dataloader, all_guids, task_name)
 
-    logger.info(f"-----Best Result-----")
+    logger.info('-----Best Result-----')
     for key in sorted(max_result.keys()):
-        logger.info(f"  {key} = {str(max_result[key])}")
+        logger.info(f'  {key} = {max_result[key]}')
 
     return model, max_result
 
@@ -421,7 +430,6 @@ def run_dev(args, logger, model, dev_dataloader, all_guids, task_name):
     nb_eval_steps = 0
     preds = []
     pred_guids = []
-    numbers = []
     out_label_ids = None
 
     for dev_batch in tqdm(dev_dataloader, desc="Predicting", bar_format="{l_bar}%s{bar}%s{r_bar}" % (Fore.LIGHTRED_EX, Fore.RESET)):
@@ -458,7 +466,7 @@ def run_dev(args, logger, model, dev_dataloader, all_guids, task_name):
                 eval_loss += tmp_eval_loss.mean().item()
                 nb_eval_steps += 1
 
-                if len(preds) == 0:
+                if not preds:
                     preds.append(logits.detach().cpu().numpy())
                     pred_guids.append([all_guids[i] for i in idx])
                     out_label_ids = label_ids.detach().cpu().numpy()
@@ -658,7 +666,6 @@ def load_trained_model(args, model, tokenizer):
         model.load_state_dict(torch.load(output_model_file))
 
     return model
-
 
 if __name__ == "__main__":
     main()
