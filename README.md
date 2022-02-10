@@ -7,6 +7,7 @@ A tutorial in using this for other languages will follow.
 ## File system
 
 This directory exists of two parts, one for creating the input that is used for the model and one that contains the model itself.
+See the bottom of this readme for more detailed lists of functionality.
 
 ## Bagging
 
@@ -31,4 +32,13 @@ scipy
 numpy
 tqdm
 colorama
+```
+
+### Data Parsers
+
+```
+pasmaparser_cov_melbert_allpos -> This parser creates the dev (covid data) input for the model for all POS tags.
+pasmaparser_melBERT_allpos -> This parser creates the train/test input for the model for all POS tags.
+pasmaparser_melbert_ww -> This parser creates the train/test input for the model for only verbs.
+pasmaparser_zn and pasmaparser_ww -> These parsers create train/test input for our old model, pos tags ZN and VERB.
 ```
