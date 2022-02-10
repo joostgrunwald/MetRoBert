@@ -99,7 +99,7 @@ class Config:
             f.write(main_conf_str)
 
         
-       # print('main config saved in %s' % base_dir)
+        # print('main config saved in %s' % base_dir)
 
     def __getitem__(self, item):
         if not isinstance(item, str):
@@ -112,9 +112,7 @@ class Config:
         return section
 
     def __str__(self):
-        config_str = '\n'
-
-        config_str += '>>>>> Main Config\n'
+        config_str = '\n' + '>>>>> Main Config\n'
         for section in self.main_config:
             config_str += '[%s]\n' % section
             config_str += '\n'.join(['{}: {}'.format(k, self.main_config[section][k]) for k in self.main_config[section]])
@@ -124,5 +122,4 @@ class Config:
 
 if __name__ == '__main__':
     param = Config('../main_config.cfg')
-
-   # print(param)
+    # print(param)

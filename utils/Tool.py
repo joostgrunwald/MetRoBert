@@ -1,4 +1,3 @@
-import math
 import time
 
 import numpy as np
@@ -13,5 +12,6 @@ def set_random_seed(seed):
     torch.backends.cudnn.benchmark = False
 
 def getlocaltime():
+    #Does not use anything???
     date = time.strftime('%y-%m-%d', time.localtime())
     current_time = time.strftime('%H:%M:%S', time.localtime())
