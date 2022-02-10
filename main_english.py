@@ -8,10 +8,10 @@ import sys
 import random
 import copy
 import numpy as np
-
 import torch
 import torch.nn as nn
 
+from colorama import Fore
 from tqdm import tqdm, trange
 from collections import OrderedDict
 from transformers import AutoTokenizer, AutoModel, AdamW, get_linear_schedule_with_warmup
@@ -47,7 +47,7 @@ training_output = True
 def main():
 
     #* INFOGRAPHIC OUTPUT
-    print("   *                        (           ")
+    print(Fore.LIGHTGREEN_EX + "   *                        (           ")
     print(" (  `         (    (        )\ )  *   ) ") 
     print(" )\))(     (  )\ ( )\  (   (()/(` )  /( ") 
     print("((_)()\   ))\((_))((_) )\   /(_))( )(_))") 
