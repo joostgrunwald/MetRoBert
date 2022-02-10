@@ -120,7 +120,12 @@ class ResultTable:
         #     s = row_values[i] + ' ' * diff
         #     value_str.append(s)
 
-        return self.splitter + ' ' + (' %s ' % self.splitter).join(value_str) + ' ' + self.splitter
+        return (
+            f'{self.splitter} '
+            + (' %s ' % self.splitter).join(value_str)
+            + ' '
+            + self.splitter
+        )
 
     def to_string(self):
         """
@@ -129,7 +134,7 @@ class ResultTable:
         :return: string form of the table
         """
         size_per_col = {h: self.max_len[h] + 2 + len(self.splitter) for h in self.header}
-        line_len = sum([size_per_col[c] for c in size_per_col]) + len(self.splitter)
+        line_len = sum(size_per_col[c] for c in size_per_col) + len(self.splitter)
         table_str = '\n'
 
         # TABLE NAME
