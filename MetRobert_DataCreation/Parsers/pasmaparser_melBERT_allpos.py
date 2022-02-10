@@ -739,5 +739,4 @@ for filename in os.listdir(directory):
 
 print("Sentences parsed: " + str(sent_no))
 f.close()
-g.close()
 h.close()
