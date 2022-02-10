@@ -1,12 +1,16 @@
 # MetRoBert
+
 MetRobert is an automatic metaphor identification model in Dutch and English
 
-# requirements
-python 3
-colorama
-tqdm
-nltk
+## Requirements
+
+```
+python==3.8
 pytorch
 transformers
+nltk
 scipy
 numpy
+tqdm
+colorama
+```
