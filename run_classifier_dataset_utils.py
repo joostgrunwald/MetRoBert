@@ -21,20 +21,13 @@ import csv
 import logging
 import os
 import sys
-import numpy as np
-import torch
 
-from scipy.stats import pearsonr, spearmanr, truncnorm
+
 from sklearn.metrics import (
-    matthews_corrcoef,
     f1_score,
     precision_score,
     recall_score,
-    mean_squared_error,
 )
-import random
-import nltk
-from nltk.corpus import wordnet
 
 logger = logging.getLogger(__name__)
 
@@ -126,7 +119,7 @@ class DataProcessor(object):
             lines = []
             for line in reader:
                 if sys.version_info[0] == 2:
-                    line = list(unicode(cell, "utf-8") for cell in line)
+                    line = [unicode(cell, "utf-8") for cell in line]
                 lines.append(line)
             return lines
 
@@ -479,10 +472,10 @@ def convert_examples_to_features(
                 if i == text_b:
                     # consider the index due to models that use a byte-level BPE as a tokenizer (e.g., GPT2, RoBERTa)
                     text_b = (
-                        tokenizer.tokenize(w) if i == 0 else tokenizer.tokenize(" " + w)
+                        tokenizer.tokenize(w) if i == 0 else tokenizer.tokenize(f' {w}')
                     )
                     break
-                w_tok = tokenizer.tokenize(w) if i == 0 else tokenizer.tokenize(" " + w)
+                w_tok = tokenizer.tokenize(w) if i == 0 else tokenizer.tokenize(f' {w}')
 
                 # Count number of tokens before the target word to get the target word index
                 if w_tok:
@@ -546,9 +539,10 @@ def convert_examples_to_features(
                 input_mask=input_mask,
                 segment_ids=segment_ids,
                 label_id=label_id,
-                guid=example.guid + " " + str(example.text_b),
+                guid=f'{example.guid} ' + str(example.text_b),
             )
         )
+
     return features
 
 
@@ -580,11 +574,9 @@ def convert_two_examples_to_features(
                 # If w is a target word, tokenize the word and save to text_b
                 if i == text_b:
                     # consider the index due to models that use a byte-level BPE as a tokenizer (e.g., GPT2, RoBERTa)
-                    text_b = (
-                        tokenizer.tokenize(w) if i == 0 else tokenizer.tokenize(" " + w)
-                    )
+                    text_b = tokenizer.tokenize(w) if i == 0 else tokenizer.tokenize(f' {w}')
                     break
-                w_tok = tokenizer.tokenize(w) if i == 0 else tokenizer.tokenize(" " + w)
+                w_tok = tokenizer.tokenize(w) if i == 0 else tokenizer.tokenize(f' {w}')
 
                 # Count number of tokens before the target word to get the target word index
                 if w_tok:
@@ -652,9 +644,10 @@ def convert_two_examples_to_features(
                 input_mask=input_mask,
                 segment_ids=segment_ids,
                 label_id=label_id,
-                guid=example.guid + " " + example.text_b,
+                guid=f'{example.guid} {example.text_b}',
             )
         )
+
     return features
 
 
@@ -693,12 +686,10 @@ def convert_examples_to_two_features(
                 # If w is a target word, tokenize the word and save to text_b
                 if i == text_b:
                     # consider the index due to models that use a byte-level BPE as a tokenizer (e.g., GPT2, RoBERTa)
-                    text_b = (
-                        tokenizer.tokenize(w) if i == 0 else tokenizer.tokenize(" " + w)
-                    )
+                    text_b = tokenizer.tokenize(w) if i == 0 else tokenizer.tokenize(f' {w}')
                     break
 
-                w_tok = tokenizer.tokenize(w) if i == 0 else tokenizer.tokenize(" " + w)
+                w_tok = tokenizer.tokenize(w) if i == 0 else tokenizer.tokenize(f' {w}')
 
                 # Count number of tokens before the target word to get the target word index
                 if w_tok:
@@ -746,12 +737,10 @@ def convert_examples_to_two_features(
                     tokens_b = int(
                         tokens_b[0]
                     )  # as it is a singleton set we just take the first element
-                    continue
-
                 else:
                     print("ERROR: integer expected but non singleton list given")
                     print("GIVEN SET: " + str(tokens_b))
-                    continue
+                continue
 
             for i, w in enumerate(tokens):
 
@@ -832,12 +821,13 @@ def convert_examples_to_two_features(
                 input_mask=input_mask,
                 segment_ids=segment_ids,
                 label_id=label_id,
-                guid=example.guid + " " + str(example.text_b),
+                guid=f'{example.guid} ' + str(example.text_b),
                 input_ids_2=input_ids_2,
                 input_mask_2=input_mask_2,
                 segment_ids_2=segment_ids_2,
             )
         )
+
 
     return features
 
@@ -858,17 +848,13 @@ def _truncate_seq_pair(tokens_a, tokens_b, max_length):
         else:
             tokens_b.pop()
 
-
 def simple_accuracy(preds, labels):
     return (preds == labels).mean()
 
 
 def seq_accuracy(preds, labels):
-    acc = []
-    for idx, pred in enumerate(preds):
-        acc.append((pred == labels[idx]).mean())
+    acc = [(pred == labels[idx]).mean() for idx, pred in enumerate(preds)]
     return acc.mean()
-
 
 def acc_and_f1(preds, labels):
     acc = simple_accuracy(preds, labels)
@@ -878,7 +864,6 @@ def acc_and_f1(preds, labels):
         "f1": f1,
         "acc_and_f1": (acc + f1) / 2,
     }
-
 
 def all_metrics(preds, labels):
     acc = simple_accuracy(preds, labels)
