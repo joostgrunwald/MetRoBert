@@ -78,9 +78,6 @@ for directory_d2_first in subdirectories:
 outputdirectory_train = (
     r"C:\Users\joost\source\repos\melbertdata\traintestdev\train.tsv"
 )
-outputdirectory_test = (
-    r"C:\Users\joost\source\repos\melbertdata\traintestdev\test.tsv"
-)
 outputdirectory_dev = (
     r"C:\Users\joost\source\repos\melbertdata\traintestdev\dev.tsv"
 )
@@ -88,9 +85,6 @@ outputdirectory_dev = (
 # ? WE ADD ALL DIRECTORY HEADERS
 f = codecs.open(outputdirectory_train, "w", encoding="utf8")
 f.write("index  label   sentence    POS w_index" + "\n")
-
-g = codecs.open(outputdirectory_test, "w", encoding="utf8")
-g.write("index  label   sentence    POS w_index" + "\n")
 
 h = codecs.open(outputdirectory_dev, "w", encoding="utf8")
 h.write("index  label   sentence    POS w_index" + "\n")
@@ -532,10 +526,7 @@ for filename in os.listdir(directory):
                                             + str(int(word_offset)-1-letsofar)
                                         )
 
-                                        if sent_no <= train_test_border:  # was 33000
-                                            f.write(output + "\n")
-                                        elif sent_no > 35500:
-                                            g.write(output + "\n")
+                                        f.write(output + "\n")
 
                     elif str(child_of_child.get("pos")) != "None":
 
@@ -727,14 +718,6 @@ for filename in os.listdir(directory):
                         if cor_sentence[0:1] == " ":
                             cor_sentence = cor_sentence[1:]
 
-                        # divide into test and train
-                        # 70 percent train, 30 percent test
-                        # 5757 training data
-                        # 2467 test data
-                        # TODO: UPDATE NUMERICAL VALUES HERE FOR TRAIN TEST DEV
-                        #! 70 % TRAIN
-                        #! 20 % TEST
-                        #! 10 % DEV
                         if pos_tag is not "":
                             sent_no = sent_no + 1
 
@@ -751,12 +734,8 @@ for filename in os.listdir(directory):
                                 + "\t"
                                 + str(int(word_offset)-1-letsofar)
                             )
-                            
-                            if sent_no <= train_test_border:  # was 33000
-                                f.write(output + "\n")
-                            elif sent_no > 35500:
-                                g.write(output + "\n")
 
+                            f.write(output + "\n")
 
 print("Sentences parsed: " + str(sent_no))
 f.close()

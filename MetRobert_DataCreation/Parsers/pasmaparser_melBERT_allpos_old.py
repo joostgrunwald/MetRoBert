@@ -64,7 +64,7 @@ sent_no = 0
 #adjust for partitioning
 train_test_border = 35500 #default 35500
 
-directory = r"C:\Users\Josso\Documents\Radboud\corpus_alpino_parsed"
+directory = r"C:\Users\joost\source\repos\melbertdata\corpus_alpino_parsed"
 subdirectories = os.listdir(directory)
 
 for directory_d2_first in subdirectories:
@@ -76,13 +76,13 @@ for directory_d2_first in subdirectories:
 
 #! WE LIST ALL OUTPUTDIRECTORIES USED
 outputdirectory_train = (
-    r"C:\Users\Josso\Downloads\MelBERT-main\data_sample\pasma_all\train.tsv"
+    r"C:\Users\joost\source\repos\melbertdata\traintestdev\train.tsv"
 )
 outputdirectory_test = (
-    r"C:\Users\Josso\Downloads\MelBERT-main\data_sample\pasma_all\test.tsv"
+    r"C:\Users\joost\source\repos\melbertdata\traintestdev\test.tsv"
 )
 outputdirectory_dev = (
-    r"C:\Users\Josso\Downloads\MelBERT-main\data_sample\pasma_all\dev.tsv"
+    r"C:\Users\joost\source\repos\melbertdata\traintestdev\dev.tsv"
 )
 
 # ? WE ADD ALL DIRECTORY HEADERS
