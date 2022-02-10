@@ -5,7 +5,6 @@
 
 import os
 import sys
-import pickle
 import random
 import copy
 import numpy as np
@@ -15,7 +14,6 @@ import torch.nn as nn
 
 from tqdm import tqdm, trange
 from collections import OrderedDict
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, TensorDataset
 from transformers import AutoTokenizer, AutoModel, AdamW, get_linear_schedule_with_warmup
 
 #! Imports from other python file of this module
@@ -57,7 +55,7 @@ def main():
     print("|  \/  |(_)) | | | _ )| __|| _ \|_   _| ")
     print("| |\/| |/ -_)| | | _ \| _| |   /  | |   ") 
     print("|_|  |_|\___||_| |___/|___||_|_\  |_|   ") 
-
+    print(Fore.WHITE + "             ENGLISH EDITION             ")
     #* read configuration into config via /utils/Config.py
     config = Config(main_conf_path="./")
 

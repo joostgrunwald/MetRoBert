@@ -68,7 +68,7 @@ def main():
     print("| |\/| |/ -_)| | | _ \| _| |   /  | |   ")
     print("|_|  |_|\___||_| |___/|___||_|_\  |_|   ")
     print("")
-    print(Fore.WHITE + "             OPTUNA EDITION             ")
+    print(Fore.WHITE + "             DUTCH EDITION             ")
 
     # * read configuration into config via /utils/Config.py
     config = Config(main_conf_path="./")
