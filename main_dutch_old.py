@@ -5,7 +5,6 @@
 
 import os
 import sys
-import pickle
 import random
 import copy
 import numpy as np
@@ -16,8 +15,7 @@ import torch.nn as nn
 from colorama import Fore
 from tqdm import tqdm, trange
 from collections import OrderedDict
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, TensorDataset
-from transformers import AutoTokenizer, AutoModel, AdamW, get_linear_schedule_with_warmup, RobertaTokenizer, RobertaForSequenceClassification
+from transformers import AutoModel, AdamW, get_linear_schedule_with_warmup, RobertaTokenizer
 
 #! Imports from other python file of this module
 from utils import Config, Logger, make_log_dir
@@ -29,7 +27,7 @@ from modeling import (
     AutoModelForSequenceClassification_SPV_MIP,
 )
 from run_classifier_dataset_utils import processors, output_modes, compute_metrics
-from data_loader import load_train_data, load_train_data_kf, load_test_data, load_dev_data
+from data_loader import load_train_data, load_test_data, load_dev_data
 
 CONFIG_NAME = "config.json"
 WEIGHTS_NAME = "pytorch_model.bin"
