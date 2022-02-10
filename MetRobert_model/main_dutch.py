@@ -13,10 +13,11 @@ import pickle
 import torch
 import torch.nn as nn
 
+from torch.optim import AdamW
 from colorama import Fore
 from tqdm import tqdm, trange
 from collections import OrderedDict
-from transformers import AutoModel, AdamW, get_linear_schedule_with_warmup, RobertaTokenizer
+from transformers import AutoModel, get_linear_schedule_with_warmup, RobertaTokenizer
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, TensorDataset
 
 #! Imports from other python file of this module
