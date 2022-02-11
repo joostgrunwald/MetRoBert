@@ -13,11 +13,11 @@ import pickle
 import torch
 import torch.nn as nn
 
-from torch.optim import AdamW
+#from torch.optim import AdamW
 from colorama import Fore
 from tqdm import tqdm, trange
 from collections import OrderedDict
-from transformers import AutoModel, get_linear_schedule_with_warmup, RobertaTokenizer
+from transformers import AutoModel, AdamW, get_linear_schedule_with_warmup, RobertaTokenizer
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, TensorDataset
 
 #! Imports from other python file of this module
@@ -157,6 +157,10 @@ def main():
     tokenizer = RobertaTokenizer.from_pretrained(
         "pdelobelle/robbert-v2-dutch-base", do_lower_case=args.do_lower_case)
     model = load_pretrained_model(args)
+
+    #!###############################
+    #! VUA-18 / VUA-20 with Boosting
+    if args.do_train and args.task_name == "vue" and args.num_boosting:
     
     #!########## Training ###########
     #! VUA-18 / VUA-20 with bagging
@@ -183,16 +187,6 @@ def main():
             preds = run_eval(args, logger, model, eval_dataloader, all_guids, task_name, return_preds=True)
             with open(os.path.join(args.data_dir, f"seed{args.seed}_preds_{fold}.p"), "wb") as f:
                 pickle.dump(preds, f)
-
-            # If train data is VUA20, the model needs to be tested on VUAverb, MOH-X, TroFi as well.
-            # You can just adjust the names of data_dir in conditions below for your own data directories.
-            # if "VUA20" in args.data_dir:
-            #     # Verb
-            #     args.data_dir = "data/VUAverb"
-            #     all_guids, eval_dataloader = load_test_data(args, logger, processor, task_name, label_list, tokenizer, output_mode)
-            #     preds = run_eval(args, logger, model, eval_dataloader, all_guids, task_name, return_preds=True)
-            #     with open(os.path.join(args.data_dir, f"seed{args.seed}_preds_{fold}.p"), "wb") as f:
-            #         pickle.dump(preds, f)
 
             logger.info(f"Saved to {logger.log_dir}")
         return                
