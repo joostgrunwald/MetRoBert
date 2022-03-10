@@ -1,9 +1,8 @@
 ##############
 # dependencies#
 ##############
-import csv
 from lxml import etree
-from io import StringIO, BytesIO
+from io import BytesIO
 import xml.etree.ElementTree as ET
 import os
 import codecs
