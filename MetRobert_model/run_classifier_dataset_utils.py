@@ -32,7 +32,7 @@ from sklearn.metrics import (
 logger = logging.getLogger(__name__)
 
 # SETTINGS
-mode = 3  # 0 = english verb, 1 = english all pos, 2 = dutch verb, 3 = dutch allpos, 4 = english pos diff, 5 = english genre diff, 6 = dutch pos diff
+mode = 3  # 0 = english verb, 1 = english all pos, 2 = dutch verb, 3 = dutch allpos, 4 = english pos diff, 5 = english genre diff, 6 = dutch pos diff, 7 = dutch conv, 8 = english conv
 ponyland = 1  # 1 for ponyland directories, 0 for non ponyland directories
 wrong_examples = 0
 
@@ -131,9 +131,10 @@ class TrofiProcessor(DataProcessor):
         """See base class."""
         if k is not None:
             return self._create_examples(
-                self._read_tsv(os.path.join(data_dir, "train" + str(k) + ".tsv")),
+                self._read_tsv(os.path.join(data_dir, f"train{str(k)}.tsv")),
                 "train",
             )
+
         else:
             return self._create_examples(
                 self._read_tsv(os.path.join(data_dir, "train.tsv")), "train"
@@ -143,8 +144,9 @@ class TrofiProcessor(DataProcessor):
         """See base class."""
         if k is not None:
             return self._create_examples(
-                self._read_tsv(os.path.join(data_dir, "test" + str(k) + ".tsv")), "test"
+                self._read_tsv(os.path.join(data_dir, f"test{str(k)}.tsv")), "test"
             )
+
         else:
             return self._create_examples(
                 self._read_tsv(os.path.join(data_dir, "test.tsv")), "test"
@@ -154,8 +156,9 @@ class TrofiProcessor(DataProcessor):
         """See base class."""
         if k is not None:
             return self._create_examples(
-                self._read_tsv(os.path.join(data_dir, "dev" + str(k) + ".tsv")), "dev"
+                self._read_tsv(os.path.join(data_dir, f"dev{str(k)}.tsv")), "dev"
             )
+
         else:
             return self._create_examples(
                 self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev"
@@ -263,7 +266,15 @@ class VUAProcessor(DataProcessor):
                     ),
                     "train",
                 )
-
+            elif mode == 7:
+                return self._create_examples(
+                    self._read_tsv(
+                        os.path.dirname(os.path.realpath(__file__))
+                        + "/data_sample/pasma_conv_all/train.tsv"
+                    ),
+                    "train",
+                )
+                
     def get_test_examples(self, data_dir):
         """See base class."""
 
@@ -327,6 +338,14 @@ class VUAProcessor(DataProcessor):
                     self._read_tsv(
                         os.path.dirname(os.path.realpath(__file__))
                         + "/data_sample/pasma_all/test.tsv"
+                    ),
+                    "test",
+                )
+            elif mode == 7:
+                return self._create_examples(
+                    self._read_tsv(
+                        os.path.dirname(os.path.realpath(__file__))
+                        + "/data_sample/pasma_conv_all/test.tsv"
                     ),
                     "test",
                 )
@@ -394,6 +413,14 @@ class VUAProcessor(DataProcessor):
                     self._read_tsv(
                         os.path.dirname(os.path.realpath(__file__))
                         + "/data_sample/pasma_all/dev.tsv"
+                    ),
+                    "dev",
+                )
+            elif mode == 7:
+                return self._create_examples(
+                    self._read_tsv(
+                        os.path.dirname(os.path.realpath(__file__))
+                        + "/data_sample/pasma_conv_all/dev.tsv"
                     ),
                     "dev",
                 )
