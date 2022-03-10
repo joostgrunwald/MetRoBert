@@ -21,6 +21,10 @@ Our model is currently stored at /vol/tensusers4/jgrunwald/MetRobert*run2.
 The verb model will take approximatly 3 * 5 minutes to fully train and approximatly 3 _ 1 minute to test.
 The allpos model will take approximatly 12 _ 5 minutes to fully train and approximatly 3 \_ 2 minutes to test.
 
+## LaMachine
+On ponyland we have created a LaMachine called "metrobert" here we have created a clam project called "metaphorclam".
+We can do source lamachine-metrobert-activate to activate it. Metaphorclam is in the jgrunwald folder.
+
 ## Requirements
 
 ```
