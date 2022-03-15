@@ -16,6 +16,7 @@ import os
 
 sentence_number = 0
 word_number = 0
+sentence = ""
 
 ###########
 # FUNCTIONS#
@@ -65,7 +66,22 @@ def writeoutput(pos, word, index):
     global word_number
     word_number = word_number + 1
 
+    global sentence
+    #sentence = str(sentence)
+    
+    #! Correction of sentence mistakes
+    #if sentence[0:3] == "'' ":
+     #   sentence = sentence[3:]
+
+      #  index -= 1
+
     #! Calculate and write output
+
+    if not str(sentence) == "NONE":
+        if sentence[0:3] == "'' ":
+            sentence = sentence[3:]
+            index = str(int(index)-1)
+        
     output = (
         "COV_fragment01"
         + " "
@@ -73,7 +89,7 @@ def writeoutput(pos, word, index):
         + "\t"
         + "0"
         + "\t"
-        + str(sentence)
+        + sentence
         + "\t"
         + pos
         + "\t"
@@ -160,8 +176,6 @@ for directory_d2_first in subdirectories:
                             sentence = sentence.replace(",,", " ")
 
                             sentence = sentence.replace("\"", "")
-
-                            #sentence = sentence.replace(","," ,")
 
                             if sentence[0:1] == " ":
                                 sentence = sentence[1:]
