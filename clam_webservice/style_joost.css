@@ -39,12 +39,15 @@ a:link {
 .sorting_1 {
 	background-color: #2b2b2b;
 }
-.bg.dark {
+.bg-dark {
 	background-color: black!important;
 }
 .btn-outline-secondary {
 	color: red;
     border-color: seagreen;
+}
+#status {
+	
 }
 #container {
     padding-bottom: 2px;
@@ -168,26 +171,46 @@ tr, td {
 }
 
 .dataTables_info {
-	color: #d7d7d7;
+	color: #d7d7d7!important;
 }
 .dataTables_length {
-	color: #d7d7d7;
+	color: #d7d7d7!important;
 }
 .dataTables_wrapper {
-	color: #d7d7d7;
+	color: #d7d7d7!important;
 }
 .dataTables_filter {
-	color: #d7d7d7;
+	color: #d7d7d7!important;
 }
 .dataTables_processing {
-	color: #d7d7d7;
+	color: #d7d7d7!important;
 }
 .dataTables_paginate {
-	color: #d7d7d7;
+	color: #d7d7d7!important;
+}
+.paginate_button.disabled:active{
+	color: #d7d7d7!important;
+    cursor: default;
+    border: 1px solid transparent;
+    background: transparent;
+    box-shadow: none;
+}
+.paginate_button.disabled:hover{
+	color: #28a74596!important;
+    cursor: default;
+    border: 1px solid transparent;
+    background: transparent;
+    box-shadow: none;
 }
 
 table.dataTable tbody tr {
-	background-color: #2b2b2b;
+	background-color: #2b2b2b!important;
+}
+
+[type=search]{
+	outline-offset: -2px;
+    -webkit-appearance: none;
+    background-color: #007bff57!important;
 }
 
 table .file {
