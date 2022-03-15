@@ -158,6 +158,11 @@ for inputfile in clamdata.input:
     os.rename('xml','xml_' + basename)
     os.chdir(pwd)
 
+#TODO: get working with multiple files
+#TODO: get cleanup working correctly
+#TODO: get model working
+#TODO: make nice representation of output
+
 #for inputfile in clamdata.input:
 #   inputtemplate = inputfile.metadata.inputtemplate
 #   inputfilepath = str(inputfile)
