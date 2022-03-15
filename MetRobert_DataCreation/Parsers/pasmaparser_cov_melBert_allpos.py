@@ -188,12 +188,20 @@ for directory_d2_first in subdirectories:
                             sentence = sentence.replace(" ',", "',")
                             if sentence[0:2] == "' ":
                                 sentence = "'" + sentence[2:]
-                            sentence = sentence.replace(" ' ", " '", 1)
-                            sentence = sentence.replace(" ' ", "' ", 1)
-                            sentence = sentence.replace(" ' ", " '", 1)
-                            sentence = sentence.replace(" ' ", "' ", 1)
-                            sentence = sentence.replace(" ' ", " '", 1)
-                            sentence = sentence.replace(" ' ", "' ", 1)
+
+                            qtcount = sentence.count(" ' ")
+                            if qtcount == 2:
+                                sentence = sentence.replace(" ' ", " '", 1)
+                                sentence = sentence.replace(" ' ", "' ", 1)
+
+                            if qtcount == 4:
+                                sentence = sentence.replace(" ' ", " '", 1)
+                                sentence = sentence.replace(" ' ", "' ", 1)
+
+                            if qtcount == 6:
+                                sentence = sentence.replace(" ' ", " '", 1)
+                                sentence = sentence.replace(" ' ", "' ", 1)
+
 
                             
                 for top in alpino_ds:
