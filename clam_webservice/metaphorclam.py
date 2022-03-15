@@ -119,15 +119,22 @@ if host == "yourhostname":
     #set security realm, a required component for hashing passwords (will default to SYSTEM_ID if not set)
     #REALM = SYSTEM_ID
 
-    USERS = None #no user authentication/security (this is not recommended for production environments!)
     #If you want to enable user-based security, you can define a dictionary
     #of users and (hashed) passwords here. The actual authentication will proceed
     #as HTTP Digest Authentication. Although being a convenient shortcut,
     #using pwhash and plaintext password in this code is not secure!!
 
-    #USERS = { user1': '4f8dh8337e2a5a83734b','user2': pwhash('username', REALM, 'secret') }
+    USERS = {
+         'jgrunwald': '631e314134027c2b443ef61a08d4116a',
+         'wspooren': '2d72a01cc4f7aecad30cef8c42aea5da',
+         'greijnierse': '2d72a01cc4f7aecad30cef8c42aea5da',
+    }
 
-    ADMINS = None #List of usernames that are administrator and can access the administrative web-interface (on URL /admin/)
+    #List of usernames that are administrator and can access the administrative web-interface (on URL /admin/)
+    ADMINS = {
+         'jgrunwald': '631e314134027c2b443ef61a08d4116a',
+    }
+
 else:
     #This invokes the automatic loader, do not change it;
     #it will try to find a file named $system_id.$hostname.yml or just $hostname.yml, where $hostname
