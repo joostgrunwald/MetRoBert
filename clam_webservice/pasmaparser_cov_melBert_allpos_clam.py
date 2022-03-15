@@ -112,13 +112,12 @@ sentence = ""
 
 filenumber = 0
 parser = etree.XMLParser(ns_clean=True, remove_comments=True)
-directory = r"C:\Users\Josso\Documents\Radboud\corpus_covid_parsed"
 
 subdirectories = os.listdir(directory_name)
 for directory_d2_first in subdirectories:
     if directory_d2_first.find("dev.tsv") == -1:
         print(directory_d2_first)
-        directory_d2 = directory + "\\" + directory_d2_first
+        directory_d2 = directory_name + "\\" + directory_d2_first
         print(directory_d2)
 
         outputfile = directory_d2 + "\\dev.tsv"
