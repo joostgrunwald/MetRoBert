@@ -2,11 +2,9 @@
 # dependencies#
 ##############
 import warnings
-import csv
 from lxml import etree
-from io import StringIO, BytesIO
+from io import BytesIO
 import os
-import xml.etree.ElementTree as ET
 
 ###############
 # DOCUMENTATION#
@@ -66,8 +64,6 @@ def findpos(child_of_child):
 def writeoutput(pos, word, index):
     global word_number
     word_number = word_number + 1
-    # ? Get word offset
-    word_offset = sentence.find(word)
 
     #! Calculate and write output
     output = (
@@ -180,7 +176,7 @@ for directory_d2_first in subdirectories:
                                 if not str(child_of_child) == "None":  # empty
 
                                     pos = findpos(child)
-                                    if pos is not "empty":
+                                    if pos != "empty":
                                         # get word
                                         word = child.get("word")
                                         index = child.get("begin")
@@ -196,7 +192,7 @@ for directory_d2_first in subdirectories:
                                     if not str(child_of_child) == "None":  # empty
 
                                         pos = findpos(childx)
-                                        if pos is not "empty":
+                                        if pos != "empty":
                                             # get word
                                             word = childx.get("word")
                                             index = childx.get("begin")
@@ -213,7 +209,7 @@ for directory_d2_first in subdirectories:
                                         if not str(child_of_child) == "None":  # empty
 
                                             pos = findpos(childy)
-                                            if pos is not "empty":
+                                            if pos != "empty":
                                                 # get word
                                                 word = childy.get("word")
                                                 index = childy.get("begin")
@@ -229,7 +225,7 @@ for directory_d2_first in subdirectories:
                                             if not str(child_of_child) == "None":  # empty
 
                                                 pos = findpos(childz)
-                                                if pos is not "empty":
+                                                if pos != "empty":
                                                     # get word
                                                     word = childz.get("word")
                                                     index = childz.get("begin")
@@ -247,7 +243,7 @@ for directory_d2_first in subdirectories:
                                                 ):  # empty
 
                                                     pos = findpos(childa)
-                                                    if pos is not "empty":
+                                                    if pos != "empty":
                                                         # get word
                                                         word = childa.get("word")
                                                         index = childa.get("begin")
@@ -265,7 +261,7 @@ for directory_d2_first in subdirectories:
                                                     ):  # empty
 
                                                         pos = findpos(childb)
-                                                        if pos is not "empty":
+                                                        if pos != "empty":
                                                             # get word
                                                             word = childb.get("word")
                                                             index = childb.get("begin")
@@ -286,7 +282,7 @@ for directory_d2_first in subdirectories:
                                                         ):  # empty
 
                                                             pos = findpos(childc)
-                                                            if pos is not "empty":
+                                                            if pos != "empty":
                                                                 # get word
                                                                 word = childc.get("word")
                                                                 index = childc.get("begin")
@@ -307,7 +303,7 @@ for directory_d2_first in subdirectories:
                                                             ):  # empty
 
                                                                 pos = findpos(childd)
-                                                                if pos is not "empty":
+                                                                if pos != "empty":
                                                                     # get word
                                                                     word = childd.get("word")
                                                                     index = childd.get("begin")
@@ -328,7 +324,7 @@ for directory_d2_first in subdirectories:
                                                                 ):  # empty
 
                                                                     pos = findpos(childe)
-                                                                    if pos is not "empty":
+                                                                    if pos != "empty":
                                                                         # get word
                                                                         word = childe.get("word")
                                                                         index = childe.get("begin")
@@ -348,7 +344,7 @@ for directory_d2_first in subdirectories:
                                                                     ):  # empty
 
                                                                         pos = findpos(childf)
-                                                                        if pos is not "empty":
+                                                                        if pos != "empty":
                                                                             # get word
                                                                             word = childf.get("word")
                                                                             index = childf.get("begin")
@@ -365,7 +361,7 @@ for directory_d2_first in subdirectories:
                                                                         ):  # empty
 
                                                                             pos = findpos(childg)
-                                                                            if pos is not "empty":
+                                                                            if pos != "empty":
                                                                                 # get word
                                                                                 word = childg.get("word")
                                                                                 index = childg.get("begin")
