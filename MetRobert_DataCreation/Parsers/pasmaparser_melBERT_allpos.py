@@ -158,12 +158,19 @@ for filename in os.listdir(directory):
                     sentence = sentence.replace(" ',", "',")
                     if sentence[0:2] == "' ":
                         sentence = "'" + sentence[2:]
-                    sentence = sentence.replace(" ' ", " '", 1)
-                    sentence = sentence.replace(" ' ", "' ", 1)
-                    sentence = sentence.replace(" ' ", " '", 1)
-                    sentence = sentence.replace(" ' ", "' ", 1)
-                    sentence = sentence.replace(" ' ", " '", 1)
-                    sentence = sentence.replace(" ' ", "' ", 1)
+                    
+                    qtcount = sentence.count(" ' ")
+                        if qtcount == 2:
+                            sentence = sentence.replace(" ' ", " '", 1)
+                            sentence = sentence.replace(" ' ", "' ", 1)
+
+                        if qtcount == 4:
+                            sentence = sentence.replace(" ' ", " '", 1)
+                            sentence = sentence.replace(" ' ", "' ", 1)
+
+                        if qtcount == 6:
+                            sentence = sentence.replace(" ' ", " '", 1)
+                            sentence = sentence.replace(" ' ", "' ", 1)
                     
                     if sentence.find("'") != -1:
                         quote = sentence.find("'")
