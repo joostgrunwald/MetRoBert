@@ -62,7 +62,6 @@ def findpos(child_of_child):
 
     return pos_tag
 
-
 def writeoutput(pos, word, index):
     global word_number
     word_number = word_number + 1
@@ -151,7 +150,9 @@ def writeoutput(pos, word, index):
             if index > 0:
                 print(words[index-1])
             print("OTHER CASE")
-    
+    elif index == len(words):
+        index = index - 1
+        
     #! Calculate and write output
     output = (
         "COV_fragment01"
@@ -254,7 +255,6 @@ for directory_d2_first in subdirectories:
                         sentence = sentence.replace("\"", "")
 
                         #sentence = sentence.replace(","," ,")
-                        sentence = sentence.replace(".", " .")
 
                         if sentence[0:1] == " ":
                             sentence = sentence[1:]
