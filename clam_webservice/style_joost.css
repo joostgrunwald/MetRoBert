@@ -131,7 +131,10 @@ input.start {
 
 
 
-
+.qq-upload-button {
+	background-color: #ffc107!important;
+    border-color: #ffc107!important;
+}
 
 #container .qq-upload-button {
     background: #007bff;
@@ -141,7 +144,7 @@ input.start {
     cursor: pointer !important;
     width: 50%;
     padding: 10px;
-    font-size: 1rem;
+    font-size: 1rem;    
 }
 #container .qq-upload-button:hover {
     background: #0062cc;
@@ -157,7 +160,10 @@ input.start {
 	background-color:#2b2b2be6;
     color: #d7d7d7;
 }
-
+.nav-link.active {
+	background-color: #ffc107!important;
+    border-color: #ffc107!important;
+}
 
 div#actionindex p {
     margin-left: 20px;
@@ -181,10 +187,16 @@ span.done {
     font-weight: bold;
 }
 
+input[type=submit].btn-block { 
+	background-color: #ffc107!important;
+    border-color: #ffc107!important;
+}
 #startbutton {
     margin-top: 5px;
 }
-
+.qq-upload-list {
+	background-color: #2aab48c9;
+}
 tr.even {
     background: #eee !important;
 }
