@@ -69,6 +69,89 @@ def writeoutput(pos, word, index):
     # ? Get word offset
     word_offset = sentence.find(word)
 
+
+    #Split sentence in list of words
+    #print(sentence)
+    words = sentence.split()
+
+    word = word.replace(" ","")
+    word = word.replace(",,","")
+    word = word.replace("''","")
+    word = word.replace(",","")
+
+    index = int(index)
+    
+    #check bounds of index
+    if index < len(words):
+        if words[index] == word:
+            i = 1
+        elif index > 0 and words[index-1] == word:
+            index = index - 1
+        elif index + 1 < len(words) and words[index+1] == word:
+            index = index + 1
+
+        #partial
+        elif words[index] == word[1:]:
+            i = 1
+        elif index + 1 < len(words) and words[index+1] == word[1:]:
+            index = index + 1
+        elif index > 0 and words[index-1] == word[1:]:
+            index = index - 1
+
+        #punctuation
+        elif words[index].replace(",","") == word:
+            index = index - 1
+        elif words[index].replace("\"","") == word:
+            index = index - 1
+        elif words[index] == word.replace("\"",","):
+            index = index - 1
+        elif words[index] == word.replace("\"",""):
+            index = index - 1
+
+        elif index > 0 and words[index-1].replace(",","") == word:
+            index = index - 1
+        elif index > 0 and words[index-1].replace("\"","") == word:
+            index = index - 1
+        elif index > 0 and words[index-1] == word.replace("\"",","):
+            index = index - 1
+        elif index > 0 and words[index-1] == word.replace("\"",""):
+            index = index - 1
+
+        elif index + 1 < len(words) and words[index+1].replace(",","") == word:
+            index = index + 1
+        elif index + 1 < len(words) and words[index+1].replace("\"","") == word:
+            index = index + 1
+        elif index + 1 < len(words) and words[index+1] == word.replace("\"",","):
+            index = index + 1
+        elif index + 1 < len(words) and words[index+1] == word.replace("\"",""):
+            index = index + 1
+            
+        elif words[index] == word[0:len(words[index])]:
+            i = 1
+        elif index > 0 and words[index-1] == word[0:len(words[index-1])]:
+            index = index - 1
+        elif index + 1 < len(words) and words[index+1] == word[0:len(words[index+1])]:
+            index = index + 1
+
+        elif words[index].replace(",","") == word.replace("\"",""):
+            i = 1
+
+        elif index > 0 and words[index-1].replace("'","") == word:
+            index = index - 1
+
+        elif index > 0 and words[index-1].replace("'","") == word.replace("'",""):
+            index = index - 1
+
+        elif index > 0 and words[index-1].replace("'","").replace(",","") == word:
+            index = index - 1
+            
+        else:
+            print(word)
+            print(words[index])
+            if index > 0:
+                print(words[index-1])
+            print("OTHER CASE")
+    
     #! Calculate and write output
     output = (
         "COV_fragment01"
