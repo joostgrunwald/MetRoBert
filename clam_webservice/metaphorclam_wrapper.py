@@ -35,7 +35,6 @@ import string
 import glob
 import traceback
 
-
 #import CLAM-specific modules. The CLAM API makes a lot of stuff easily accessible.
 import clam.common.data
 import clam.common.status
@@ -43,6 +42,14 @@ import clam.common.status
 from natsort import natsorted
 from foliatools import alpino2folia
 from metaphorclam import CUSTOM_FORMATS
+
+#import our own parser
+import pasmaparser_cov_melBert_allpos_clam as parser
+
+#import our own model
+from MetRobert_run2 import main_dutch
+
+
 #When the wrapper is started, the current working directory corresponds to the project directory, input files are in input/ , output files should go in output/ .
 
 #make a shortcut to the shellsafe() function
@@ -104,6 +111,11 @@ clam.common.status.write(statusfile, "Starting...")
 # This example iterates over all input files, it can be a simpler
 # method for setting up your wrapper:
 
+
+######################################
+#FIRST WE USE ALPINO ON ALL OUR FILES#
+######################################
+
 for inputfile in clamdata.input:
 
     inputtemplate = inputfile.metadata.inputtemplate
@@ -129,7 +141,7 @@ for inputfile in clamdata.input:
         os.mkdir("xml")
     else:
         for filename in glob.glob('xml/*.xml'):
-            os.unlink(filename) #clear for next round
+             os.unlink(filename) #clear for next round
 
     cmd = "ALPINO_HOME=" + shellsafe(ALPINO_HOME) + " " + ALPINO_HOME + "/bin/Alpino -veryfast -flag treebank xml debug=1 end_hook=xml user_max=900000 -parse < "  + tokfile
     print(cmd,file=sys.stderr)
@@ -139,29 +151,58 @@ for inputfile in clamdata.input:
         sys.exit(2)
 
     os.chdir("xml")
-    clam.common.status.write(statusfile, "Preparing output archive for " + basename)
-    os.system("zip ../" + basename + ".alpinoxml.zip *.xml")
-    clam.common.status.write(statusfile, "Conversion to FoLiA for " + basename)
-    foliafile = os.path.join(outputdir,basename +'.folia.xml')
-    doc = alpino2folia.makefoliadoc(foliafile)
-    for filename in natsorted( os.path.basename(x) for x in glob.glob("*.xml") ):
-        try:
-            doc = alpino2folia.alpino2folia(filename,doc)
-            doc.save(foliafile)
-        except Exception as e: #pylint: disable=broad-except
-            print("Error converting Alpino to FoLiA (" + basename +"): " + str(e), file=sys.stderr)
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            formatted_lines = traceback.format_exc().splitlines()
-            traceback.print_tb(exc_traceback, limit=50, file=sys.stderr)
 
     os.chdir('..')
     os.rename('xml','xml_' + basename)
     os.chdir(pwd)
 
-#TODO: get working with multiple files
-#TODO: get cleanup working correctly
-#TODO: get model working
-#TODO: make nice representation of output
+#######################################
+#SECONDLY WE GENERATE OUR DEV.TSV DATA#
+#######################################
+
+#update program status
+clam.common.status.write(statusfile, "Generating dev.tsv data for model")
+print("generating dev.tsv data for model")
+
+#get location needed
+dev_location = outputdir
+
+#run the python file to generate dev data
+parser.main(dev_location)
+
+#go to directory where dev.tsv data was created
+os.chdir(dev_location)
+
+#update program status
+clam.common.status.write(statusfile, "Cleaning up alpino .xml files")
+print("Cleaning up alpino xml files")
+
+#cleanup folders unneeded xml files
+for dir in os.listdir(dev_location):
+    d = os.path.join(dev_location, dir)
+    if os.path.isdir(d):
+        print("cleaning folder" + str(d))
+        for file in os.listdir(d):
+            if file.endswith(".xml"):
+                try:
+                   os.remove(d + "/" + file)
+                except:
+                   print("Error while deleting file : ", file)
+
+
+#get location of dev file to copy
+dev_file = dev_location + "/" + "dev.tsv"
+print(dev_file)
+
+#update program status
+clam.common.status.write(statusfile, "Running MetRobert on dev.tsv file")
+
+#run the dutch model on the dev file
+main_dutch.main(dev_file)
+
+#TODO: run model by python main_dutch.py --model_type MELBERT --bert_model {path of saves file}
+#TODO: get model output from folder
+#TODO: graphically show outputs of model
 
 #for inputfile in clamdata.input:
 #   inputtemplate = inputfile.metadata.inputtemplate
