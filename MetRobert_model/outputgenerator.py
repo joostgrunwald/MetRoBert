@@ -22,6 +22,5 @@ with open (os.path.join(__location__, 'wrong_devs.txt')) as misFile:
 #Remove badsentences from dev.tsv
 with open('dev.tsv') as devfile, open('output.tsv', 'w') as outputfile:
     for line in devfile:
-        for badsentence in badsentencelist:
-            if line.find(badsentence) != -1:
-                print(line)
+        if not any(bad_sen in line for bad_sen in badsentencelist):
+            outputfile.write(line)
