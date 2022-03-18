@@ -523,20 +523,28 @@ def run_dev(args, logger, model, dev_dataloader, all_guids, task_name):
                     )
 
     preds = preds[0]
+    predgu = pred_guids[0]
+
+    if(len(preds) != len(pred_guids)):
+       print("ERROR:  SIZE OF GUIDS DOES NOT MATCH SIZE OF PREDS")
+
+    predrange = len(preds)
+
     #? We save our decimal predictions over here.
     predsdec = preds #We save exact numbers
-    for pred in predsdec:
-        devoutf.write(str(pred) + "\n")
+    for i in range(predrange):
+        devoutf.write(str(predgu[i]) + "," + str(predsdec[i]) + "\n")
 
     #* change to 0 or 1 predictions
     preds = np.argmax(preds, axis=1)
 
-    for predi in preds:
-        devout.write(str(predi) + "\n")
+    for i in range(predrange):
+        devout.write(str(predgu[i]) + "," + str(preds[i]) + "\n")
 
     predssof = sigmoid(predsdec)
-    for predo in predssof:
-        devouts.write(str(predo) + "\n")
+
+    for i in range(predrange):
+        devouts.write(str(predgu[i]) + "," + str(predssof[i]) + "\n")
 
     return preds
 
