@@ -43,6 +43,10 @@ from natsort import natsorted
 from foliatools import alpino2folia
 from metaphorclam import CUSTOM_FORMATS
 
+
+#imports used for file replacements
+import fnmatch
+
 #import our own parser
 import pasmaparser_cov_melBert_allpos_clam as parser
 
@@ -112,9 +116,46 @@ clam.common.status.write(statusfile, "Starting...")
 # method for setting up your wrapper:
 
 
-######################################
-#FIRST WE USE ALPINO ON ALL OUR FILES#
-######################################
+##################################
+# WE CLEAN UP THE INPUT SENTENCES#
+##################################
+
+#Update user interface log
+clam.common.status.write(statusfile, "Fixing input files...")
+
+#helper function for file replacements
+def findReplace(directory, filePattern):
+    for path, dirs, files in os.walk(os.path.abspath(directory)):
+        for filename in fnmatch.filter(files, filePattern):
+            filepath = os.path.join(path, filename)
+            with open(filepath) as f:
+                s = f.read()
+
+            if s[0:2] == "' ":
+                s = s.replace("' ","'", 1)
+
+            s = s.replace(" ',","',")
+            s = s.replace(" '',","'',")
+
+            s = s.replace(" ' ", " '", 1)
+            s = s.replace(" ' ", "' ", 1)
+            s = s.replace(" ' ", " '", 1)
+            s = s.replace(" ' ", "' ", 1)
+            s = s.replace(" ' ", " '", 1)
+            s = s.replace(" ' ", "' ", 1)
+            s = s.replace(" ' ", " '", 1)
+            s = s.replace(" ' ", "' ", 1)
+            with open(filepath, "w") as f:
+                f.write(s)
+
+#Replace all quotation marks in files
+findReplace(outputdir.replace("output","input"), "*.txt") 
+findReplace(outputdir.replace("output","input"), "*.tok")
+
+
+#################################
+# WE USE ALPINO ON ALL OUR FILES#
+#################################
 
 for inputfile in clamdata.input:
 
@@ -200,8 +241,6 @@ clam.common.status.write(statusfile, "Running MetRobert on dev.tsv file")
 #run the dutch model on the dev file
 main_dutch.main(dev_file)
 
-#TODO: run model by python main_dutch.py --model_type MELBERT --bert_model {path of saves file}
-#TODO: get model output from folder
 #TODO: graphically show outputs of model
 
 #for inputfile in clamdata.input:
