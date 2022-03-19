@@ -124,6 +124,7 @@ inputtemplate = ""
 
 input_files = 0
 stop_iteration = False
+alpino_files = True
 
 for inputfile in clamdata.input:
     input_files = input_files + 1
@@ -131,16 +132,67 @@ for inputfile in clamdata.input:
     if inputtemplate == 'devinput' and input_files > 1:
         clam.common.status.write(statusfile, "ERROR, DEV FILE BUT MORE THEN ONE INPUT")
         stop_iteration = True
+    if inputtemplate != 'alpinoinput':
+        alpino_files = False
 
 if stop_iteration == False and inputtemplate == "devinput":
-    # ? CASE 1: SINGLE DEV FILE SUPPLIED
+    # ! CASE 1: SINGLE DEV FILE SUPPLIED
 
     for devfile in clamdata.input:
         dev_path = str(devfile)
         print(dev_path)
 
+        #update program status
+        clam.common.status.write(statusfile, "Running MetRobert on dev.tsv file")
+
+        #run the dutch model on the dev file
+        main_dutch.main(dev_path)
+
+elif alpino_files == True:
+    # ! CASE 2: ALPINO FILES SUPPLIED
+
+    #update program status
+    clam.common.status.write(statusfile, "Generating dev.tsv data for model")
+    print("generating dev.tsv data for model")
+
+    #get location needed
+    dev_location = outputdir.replace("output","input")
+
+    #run the python file to generate dev data
+    parser.main(dev_location)
+
+    #go to directory where dev.tsv data was created
+    os.chdir(dev_location)
+
+    #update program status
+    clam.common.status.write(statusfile, "Cleaning up alpino .xml files")
+    print("Cleaning up alpino xml files")
+
+    #cleanup folders unneeded xml files
+    for dir in os.listdir(dev_location):
+        d = os.path.join(dev_location, dir)
+        if os.path.isdir(d):
+            print("cleaning folder" + str(d))
+            for file in os.listdir(d):
+                if file.endswith(".xml"):
+                    try:
+                        os.remove(d + "/" + file)
+                    except:
+                        print("Error while deleting file : ", file)
+
+
+    #get location of dev file to copy
+    dev_file = dev_location + "/" + "dev.tsv"
+    print(dev_file)
+
+    #update program status
+    clam.common.status.write(statusfile, "Running MetRobert on dev.tsv file")
+
+    #run the dutch model on the dev file
+    main_dutch.main(dev_file)
+
 elif inputtemplate != "devinput":
-    # ? CASE 2: SENTENCE FILES SUPPLIED
+    # ! CASE 3: SENTENCE FILES SUPPLIED
 
     #TODO: implement else case with alpino
 
