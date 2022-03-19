@@ -115,131 +115,158 @@ clam.common.status.write(statusfile, "Starting...")
 # This example iterates over all input files, it can be a simpler
 # method for setting up your wrapper:
 
+#########################################
+# WE CHECK IF WE RECEIVED A DEV.TSV FILE#
+#########################################
 
-##################################
-# WE CLEAN UP THE INPUT SENTENCES#
-##################################
+#get template of last input item (should be only one input in case of dev.tsv file)
+inputtemplate = ""
 
-#Update user interface log
-clam.common.status.write(statusfile, "Fixing input files...")
-
-#helper function for file replacements
-def findReplace(directory, filePattern):
-    for path, dirs, files in os.walk(os.path.abspath(directory)):
-        for filename in fnmatch.filter(files, filePattern):
-            filepath = os.path.join(path, filename)
-            with open(filepath) as f:
-                s = f.read()
-
-            if s[0:2] == "' ":
-                s = s.replace("' ","'", 1)
-
-            s = s.replace(" ',","',")
-            s = s.replace(" '',","'',")
-
-            s = s.replace(" ' ", " '", 1)
-            s = s.replace(" ' ", "' ", 1)
-            s = s.replace(" ' ", " '", 1)
-            s = s.replace(" ' ", "' ", 1)
-            s = s.replace(" ' ", " '", 1)
-            s = s.replace(" ' ", "' ", 1)
-            s = s.replace(" ' ", " '", 1)
-            s = s.replace(" ' ", "' ", 1)
-            with open(filepath, "w") as f:
-                f.write(s)
-
-#Replace all quotation marks in files
-findReplace(outputdir.replace("output","input"), "*.txt") 
-findReplace(outputdir.replace("output","input"), "*.tok")
-
-
-#################################
-# WE USE ALPINO ON ALL OUR FILES#
-#################################
+input_files = 0
+stop_iteration = False
 
 for inputfile in clamdata.input:
+    input_files = input_files + 1
+    inputtemplate = inputfile.metadata.inputtemplate   
+    if inputtemplate == 'devinput' and input_files > 1:
+        clam.common.status.write(statusfile, "ERROR, DEV FILE BUT MORE THEN ONE INPUT")
+        stop_iteration = True
 
-    inputtemplate = inputfile.metadata.inputtemplate
-    inputfilepath = str(inputfile)
-    basename = os.path.basename(inputfilepath)[:-4] #without extension
-    if inputtemplate == 'untokinput':
-        #we have to tokenize first
-        clam.common.status.write(statusfile, "Tokenizing " + basename)
-        tokfile = os.path.join(outputdir,basename + '.tok')
-        r = os.system('ucto -L nl -n ' + shellsafe(inputfilepath,'"') + ' > ' + shellsafe(tokfile,'"'))
+if stop_iteration == False and inputtemplate == "devinput":
+    # ? CASE 1: SINGLE DEV FILE SUPPLIED
+
+    for devfile in clamdata.input:
+        dev_path = str(devfile)
+        print(dev_path)
+
+elif inputtemplate != "devinput":
+    # ? CASE 2: SENTENCE FILES SUPPLIED
+
+    #TODO: implement else case with alpino
+
+    ##################################
+    # WE CLEAN UP THE INPUT SENTENCES#
+    ##################################
+
+    #Update user interface log
+    clam.common.status.write(statusfile, "Fixing input files...")
+
+    #helper function for file replacements
+    def findReplace(directory, filePattern):
+        for path, dirs, files in os.walk(os.path.abspath(directory)):
+            for filename in fnmatch.filter(files, filePattern):
+                filepath = os.path.join(path, filename)
+                with open(filepath) as f:
+                    s = f.read()
+
+                if s[:2] == "' ":
+                    s = s.replace("' ","'", 1)
+
+                s = s.replace(" ',","',")
+                s = s.replace(" '',","'',")
+
+                s = s.replace(" ' ", " '", 1)
+                s = s.replace(" ' ", "' ", 1)
+                s = s.replace(" ' ", " '", 1)
+                s = s.replace(" ' ", "' ", 1)
+                s = s.replace(" ' ", " '", 1)
+                s = s.replace(" ' ", "' ", 1)
+                s = s.replace(" ' ", " '", 1)
+                s = s.replace(" ' ", "' ", 1)
+                with open(filepath, "w") as f:
+                    f.write(s)
+
+    #Replace all quotation marks in files
+    findReplace(outputdir.replace("output","input"), "*.txt") 
+    findReplace(outputdir.replace("output","input"), "*.tok")
+
+    #################################
+    # WE USE ALPINO ON ALL OUR FILES#
+    #################################
+
+    for inputfile in clamdata.input:
+
+        inputtemplate = inputfile.metadata.inputtemplate
+        inputfilepath = str(inputfile)
+        basename = os.path.basename(inputfilepath)[:-4] #without extension
+        if inputtemplate == 'untokinput':
+            #we have to tokenize first
+            clam.common.status.write(statusfile, "Tokenizing " + basename)
+            tokfile = os.path.join(outputdir,basename + '.tok')
+            r = os.system('ucto -L nl -n ' + shellsafe(inputfilepath,'"') + ' > ' + shellsafe(tokfile,'"'))
+            if r != 0:
+                print("Failure running ucto",file=sys.stderr)
+                sys.exit(2)
+        else:
+            tokfile = os.path.abspath(inputfilepath)
+            os.system("sed -i 's/^M$//' " + shellsafe(tokfile,'"'))  #convert nasty DOS end-of-line to proper unix
+
+        clam.common.status.write(statusfile, "Running Alpino on " + basename)
+
+        pwd = os.getcwd()
+        os.chdir(outputdir)
+        if not os.path.exists("xml"):
+            os.mkdir("xml")
+        else:
+            for filename in glob.glob('xml/*.xml'):
+                os.unlink(filename) #clear for next round
+
+        cmd = "ALPINO_HOME=" + shellsafe(ALPINO_HOME) + " " + ALPINO_HOME + "/bin/Alpino -veryfast -flag treebank xml debug=1 end_hook=xml user_max=900000 -parse < "  + tokfile
+        print(cmd,file=sys.stderr)
+        r = os.system(cmd)
         if r != 0:
-            print("Failure running ucto",file=sys.stderr)
+            print("Failure running alpino",file=sys.stderr)
             sys.exit(2)
-    else:
-        tokfile = os.path.abspath(inputfilepath)
-        os.system("sed -i 's/^M$//' " + shellsafe(tokfile,'"'))  #convert nasty DOS end-of-line to proper unix
 
-    clam.common.status.write(statusfile, "Running Alpino on " + basename)
+        os.chdir("xml")
 
-    pwd = os.getcwd()
-    os.chdir(outputdir)
-    if not os.path.exists("xml"):
-        os.mkdir("xml")
-    else:
-        for filename in glob.glob('xml/*.xml'):
-             os.unlink(filename) #clear for next round
+        os.chdir('..')
+        os.rename('xml','xml_' + basename)
+        os.chdir(pwd)
 
-    cmd = "ALPINO_HOME=" + shellsafe(ALPINO_HOME) + " " + ALPINO_HOME + "/bin/Alpino -veryfast -flag treebank xml debug=1 end_hook=xml user_max=900000 -parse < "  + tokfile
-    print(cmd,file=sys.stderr)
-    r = os.system(cmd)
-    if r != 0:
-        print("Failure running alpino",file=sys.stderr)
-        sys.exit(2)
+    #######################################
+    #SECONDLY WE GENERATE OUR DEV.TSV DATA#
+    #######################################
 
-    os.chdir("xml")
+    #update program status
+    clam.common.status.write(statusfile, "Generating dev.tsv data for model")
+    print("generating dev.tsv data for model")
 
-    os.chdir('..')
-    os.rename('xml','xml_' + basename)
-    os.chdir(pwd)
+    #get location needed
+    dev_location = outputdir
 
-#######################################
-#SECONDLY WE GENERATE OUR DEV.TSV DATA#
-#######################################
+    #run the python file to generate dev data
+    parser.main(dev_location)
 
-#update program status
-clam.common.status.write(statusfile, "Generating dev.tsv data for model")
-print("generating dev.tsv data for model")
+    #go to directory where dev.tsv data was created
+    os.chdir(dev_location)
 
-#get location needed
-dev_location = outputdir
+    #update program status
+    clam.common.status.write(statusfile, "Cleaning up alpino .xml files")
+    print("Cleaning up alpino xml files")
 
-#run the python file to generate dev data
-parser.main(dev_location)
-
-#go to directory where dev.tsv data was created
-os.chdir(dev_location)
-
-#update program status
-clam.common.status.write(statusfile, "Cleaning up alpino .xml files")
-print("Cleaning up alpino xml files")
-
-#cleanup folders unneeded xml files
-for dir in os.listdir(dev_location):
-    d = os.path.join(dev_location, dir)
-    if os.path.isdir(d):
-        print("cleaning folder" + str(d))
-        for file in os.listdir(d):
-            if file.endswith(".xml"):
-                try:
-                   os.remove(d + "/" + file)
-                except:
-                   print("Error while deleting file : ", file)
+    #cleanup folders unneeded xml files
+    for dir in os.listdir(dev_location):
+        d = os.path.join(dev_location, dir)
+        if os.path.isdir(d):
+            print("cleaning folder" + str(d))
+            for file in os.listdir(d):
+                if file.endswith(".xml"):
+                    try:
+                        os.remove(d + "/" + file)
+                    except:
+                        print("Error while deleting file : ", file)
 
 
-#get location of dev file to copy
-dev_file = dev_location + "/" + "dev.tsv"
-print(dev_file)
+    #get location of dev file to copy
+    dev_file = dev_location + "/" + "dev.tsv"
+    print(dev_file)
 
-#update program status
-clam.common.status.write(statusfile, "Running MetRobert on dev.tsv file")
+    #update program status
+    clam.common.status.write(statusfile, "Running MetRobert on dev.tsv file")
 
-#run the dutch model on the dev file
-main_dutch.main(dev_file)
+    #run the dutch model on the dev file
+    main_dutch.main(dev_file)
 
 #TODO: graphically show outputs of model
 
