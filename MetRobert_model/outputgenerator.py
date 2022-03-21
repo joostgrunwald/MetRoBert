@@ -72,6 +72,19 @@ with open('output.tsv', 'w') as file3:
                 komma = line2b.find(",")
                 tab = line1.find("\t")
                 line1 = line1.strip().replace("COV_fragment01 ","").replace("\t0\t","\t",1)
+
+                tab = line1.find("\t")
+                point = line1.find("\t",tab+2)
+                sentence = line1[tab+1:point]
+
+                ltab = line1.rfind("\t")
+                word_index = line1[ltab+1:]
+                print(word_index)
+                #! get word index
+                #! split sentence by space
+                #! get index word index of sentence list
+                #! print above as seperate column
+
                 print(line1, "\t", line2.strip().replace("dev-COV_fragment01 ","")[komma:], file=file3)
 
 #TODO: add actual word
