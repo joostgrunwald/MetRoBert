@@ -63,16 +63,18 @@ with open('predictions_dev.txt') as predsin, open('predictions_dev2.txt', 'w') a
         previous_line = int(index)
 
 with open('output.tsv', 'w') as file3:
+    print("index\tsentence\tpostag\tword_index\tprediction", file=file3)
     with open('dev2.tsv', 'r') as file1:
         with open('predictions_dev2.txt', 'r') as file2:
             for line1, line2 in zip(file1, file2):
                 #line1 = line.strip
                 line2b = line2.strip().replace("dev-COV_fragment01","")
                 komma = line2b.find(",")
-                print(line1.strip(), ",", line2.strip().replace("dev-COV_fragment01 ","")[komma:], file=file3)
+                tab = line1.find("\t")
+                line1 = line1.strip().replace("COV_fragment01 ","").replace("\t0\t","\t",1)
+                print(line1, "\t", line2.strip().replace("dev-COV_fragment01 ","")[komma:], file=file3)
 
-#TODO: convert to csv file
-#TODO: add coloring to csv file
-
+#TODO: add actual word
+#TODO: remove unneeded info
 #prediction line = dev line + 1
 #
