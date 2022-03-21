@@ -79,13 +79,14 @@ with open('output.tsv', 'w') as file3:
 
                 ltab = line1.rfind("\t")
                 word_index = line1[ltab+1:]
-                print(word_index)
-                #! get word index
-                #! split sentence by space
+
+                senlist = sentence.split()
+
+                word = senlist[int(word_index)]
                 #! get index word index of sentence list
                 #! print above as seperate column
 
-                print(line1, "\t", line2.strip().replace("dev-COV_fragment01 ","")[komma:], file=file3)
+                print(line1, "\t", word, "\t", line2.strip().replace("dev-COV_fragment01 ","")[komma:], file=file3)
 
 #TODO: add actual word
 #TODO: remove unneeded info
