@@ -22,10 +22,10 @@ with open (os.path.join(__location__, 'wrong_devs.txt')) as misFile:
         #we generate a list of bad indexes
         badindexlist.append(line[:sentence_start-1])
 
-#Remove badsentences from dev.tsv
+#Remove first rule from dev.tsv
 with open('dev.tsv') as devfile, open('dev2.tsv', 'w') as outputfile:
     for line in devfile:
-        if str(line[0:5]) != "index" != -1:
+        if str(line[0:5]) != "index":
             outputfile.write(line)
         #if all(bad_sen not in line for bad_sen in badsentencelist):
          #   outputfile.write(line)
@@ -36,6 +36,8 @@ with open('dev.tsv') as devfile, open('dev2.tsv', 'w') as outputfile:
 with open('predictions_dev.txt') as predsin, open('predictions_dev2.txt', 'w') as predsout:
     line_counter = 1
     previous_line = -1
+    preprevious_line = -1
+
     for line in predsin:
 
         #remove fragment part 
@@ -48,7 +50,8 @@ with open('predictions_dev.txt') as predsin, open('predictions_dev2.txt', 'w') a
         index = pred[:space]
 
         if previous_line != -1 and (previous_line+1) != int(index):
-            print(index)
+            #print(index)
+
             predsout.write(f"dev-COV_fragment01 {int(index)-1} 0" + ",-1\n")
 
         #only write pred if not equal to index
@@ -59,7 +62,7 @@ with open('predictions_dev.txt') as predsin, open('predictions_dev2.txt', 'w') a
             predsout.write(line)
             line_counter = line_counter + 1
 
-
+        preprevious_line = previous_line
         previous_line = int(index)
 
 with open('output.tsv', 'w') as file3:
@@ -82,13 +85,19 @@ with open('output.tsv', 'w') as file3:
 
                 senlist = sentence.split()
 
-                word = senlist[int(word_index)]
+                word = "ERROR"
+                if str(line2).find("-1") == -1 and int(word_index) <= len(senlist):
+                    word = senlist[int(word_index)]
+
+                #? ERROR CAUSED BY MISSING PREDICTION (NO -1 PRESENT)
+
+                
                 #! get index word index of sentence list
                 #! print above as seperate column
 
                 print(line1, "\t", word, "\t", line2.strip().replace("dev-COV_fragment01 ","")[komma:], file=file3)
 
-#TODO: add actual word
 #TODO: remove unneeded info
+#TODO: find and remove mistakes more in depth
 #prediction line = dev line + 1
 #
