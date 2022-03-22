@@ -99,13 +99,13 @@ def writeoutput(pos, word, index):
 
         #punctuation
         elif words[index].replace(",","") == word:
-            index = index - 1
+            index = index
         elif words[index].replace("\"","") == word:
-            index = index - 1
+            index = index
         elif words[index] == word.replace("\"",","):
-            index = index - 1
+            index = index
         elif words[index] == word.replace("\"",""):
-            index = index - 1
+            index = index
 
         elif index > 0 and words[index-1].replace(",","") == word:
             index = index - 1
