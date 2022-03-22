@@ -25,12 +25,15 @@ with open (os.path.join(__location__, 'wrong_devs.txt')) as misFile:
 #Remove first rule from dev.tsv
 with open('dev.tsv') as devfile, open('dev2.tsv', 'w') as outputfile:
     for line in devfile:
-        if str(line[0:5]) != "index":
+        if str(line[:5]) != "index":
             outputfile.write(line)
-        #if all(bad_sen not in line for bad_sen in badsentencelist):
-         #   outputfile.write(line)
+            #if all(bad_sen not in line for bad_sen in badsentencelist):
+             #   outputfile.write(line)
 
 #outputfile.close()
+
+missing_lines = 0
+bad_indexes = 0
 
 #Add mistakeouptuts from wrong_devs to predictions.txt
 with open('predictions_dev.txt') as predsin, open('predictions_dev2.txt', 'w') as predsout:
@@ -51,11 +54,14 @@ with open('predictions_dev.txt') as predsin, open('predictions_dev2.txt', 'w') a
 
         if previous_line != -1 and (previous_line+1) != int(index):
             #print(index)
-
+            missing_lines = missing_lines + 1
             predsout.write(f"dev-COV_fragment01 {int(index)-1} 0" + ",-1\n")
+
+            #missing line
 
         #only write pred if not equal to index
         if index in badindexlist:
+            bad_indexes = bad_indexes + 1
             predsout.write(f"dev-COV_fragment01 {index} 0" + ",-1\n")
 
         else:
@@ -90,26 +96,29 @@ with open('output.tsv', 'w') as file3:
                 senlist = sentence.split()
 
                 word = "ERROR"
-                if str(line2).find("-1") == -1:
-                    if int(word_index) <= len(senlist):
-                        word = senlist[int(word_index)]
-                    else: 
-                        out_of_bounds = out_of_bounds + 1
-                else:
+                if "-1" in str(line2):
                     minone_amount = minone_amount + 1
 
-
+                elif int(word_index) <= len(senlist):
+                    word = senlist[int(word_index)]
+                else: 
+                    out_of_bounds = out_of_bounds + 1
                 #? ERROR CAUSED BY MISSING PREDICTION (NO -1 PRESENT)
                 if word == "ERROR":
                     error_amount = error_amount + 1
-                
-                #! get index word index of sentence list
-                #! print above as seperate column
 
                 print(line1, "\t", word, "\t", line2.strip().replace("dev-COV_fragment01 ","")[komma:], file=file3)
 
 
 #? DIAGNOSTICS
+print("BADINDEXLIST")
+print(f"wrong dev bad indexes: {len(badindexlist)} times")
+print("")
+print("PREDS")
+print(f"missing_lines: {missing_lines} times")
+print(f"bad_index: {bad_indexes} times")
+print("")
+print("OUTPUT.TSV")
 print(f"out of bounds: {out_of_bounds} times")
 print(f"-1 supplied: {minone_amount} times")
 print(f"word error: {error_amount} times")
@@ -117,7 +126,8 @@ print(f"word error: {error_amount} times")
 if(error_amount != out_of_bounds + minone_amount):
     print("ERROR: out of bounds cases + -1 cases do not equal amount of errors")
 
+if (missing_lines + bad_indexes != minone_amount):
+    print("ERROR: output of preds cleaning does not match input of output.tsv generation")
+
 #TODO: remove unneeded info
 #TODO: find and remove mistakes more in depth
-#prediction line = dev line + 1
-#
