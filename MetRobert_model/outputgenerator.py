@@ -65,8 +65,12 @@ with open('predictions_dev.txt') as predsin, open('predictions_dev2.txt', 'w') a
         preprevious_line = previous_line
         previous_line = int(index)
 
+error_amount = 0
+minone_amount = 0
+out_of_bounds = 0
+
 with open('output.tsv', 'w') as file3:
-    print("index\tsentence\tpostag\tword_index\tprediction", file=file3)
+    print("index\tsentence\tpostag\tword_index\tword\tprediction", file=file3)
     with open('dev2.tsv', 'r') as file1:
         with open('predictions_dev2.txt', 'r') as file2:
             for line1, line2 in zip(file1, file2):
@@ -86,16 +90,32 @@ with open('output.tsv', 'w') as file3:
                 senlist = sentence.split()
 
                 word = "ERROR"
-                if str(line2).find("-1") == -1 and int(word_index) <= len(senlist):
-                    word = senlist[int(word_index)]
+                if str(line2).find("-1") == -1:
+                    if int(word_index) <= len(senlist):
+                        word = senlist[int(word_index)]
+                    else: 
+                        out_of_bounds = out_of_bounds + 1
+                else:
+                    minone_amount = minone_amount + 1
+
 
                 #? ERROR CAUSED BY MISSING PREDICTION (NO -1 PRESENT)
-
+                if word == "ERROR":
+                    error_amount = error_amount + 1
                 
                 #! get index word index of sentence list
                 #! print above as seperate column
 
                 print(line1, "\t", word, "\t", line2.strip().replace("dev-COV_fragment01 ","")[komma:], file=file3)
+
+
+#? DIAGNOSTICS
+print(f"out of bounds: {out_of_bounds} times")
+print(f"-1 supplied: {minone_amount} times")
+print(f"word error: {error_amount} times")
+
+if(error_amount != out_of_bounds + minone_amount):
+    print("ERROR: out of bounds cases + -1 cases do not equal amount of errors")
 
 #TODO: remove unneeded info
 #TODO: find and remove mistakes more in depth
