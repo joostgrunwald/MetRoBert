@@ -1,6 +1,6 @@
 import os
 
-def main(location="empty"):
+def main(location="empty", pos_tags=[]):
 
     if (location == "empty"):
         #get current location folder
@@ -12,10 +12,7 @@ def main(location="empty"):
 
     badsentencelist = []
     badindexlist = []
-
-    #excluded pos_tags list
-    pos_tags = []
-
+    
     #Generate list of badwords
     with open ('wrong_devs.txt') as misFile:
         for line in misFile:
