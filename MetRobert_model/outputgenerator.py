@@ -1,9 +1,14 @@
 import os
 
-def main():
-    #get current location folder
-    __location__ = os.path.realpath(
-        os.path.join(os.getcwd(), os.path.dirname(__file__)))
+def main(location="empty"):
+
+    if (location == "empty"):
+        #get current location folder
+        __location__ = os.path.realpath(
+            os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+    #In else case location is user specified
+    #TODO: maybe check if file is present and/or catch file not found error?
 
     badsentencelist = []
     badindexlist = []
@@ -12,7 +17,7 @@ def main():
     pos_tags = []
 
     #Generate list of badwords
-    with open (os.path.join(__location__, 'wrong_devs.txt')) as misFile:
+    with open ('wrong_devs.txt') as misFile:
         for line in misFile:
 
             #extract sentence out of wrong devs
@@ -35,7 +40,6 @@ def main():
                 #   outputfile.write(line)
 
     #outputfile.close()
-
     missing_lines = 0
     bad_indexes = 0
 
