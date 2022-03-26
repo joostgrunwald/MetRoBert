@@ -36,12 +36,12 @@ def main(location="empty", pos_tags=[], dev_out=True):
     #Adjust based on the question if dev.tsv is inside in or output
     location2 = ""
     if dev_out == False:
-        location2 = location.replace("output","input")
+        location2 = os.path.join(location.replace("output","input"), "dev.tsv.tok")
     else:
-        location2 = location
+        location2 = os.path.join(location, 'dev.tsv')
 
     #Remove first rule from dev.tsv
-    with open(os.path.join(location2, 'dev.tsv')) as devfile, open(os.path.join(location2, 'dev2.tsv'), 'w') as outputfile:
+    with open(location2) as devfile, open(os.path.join(location, 'dev2.tsv'), 'w') as outputfile:
         for line in devfile:
             if str(line[:5]) != "index":
                 outputfile.write(line)
@@ -94,7 +94,7 @@ def main(location="empty", pos_tags=[], dev_out=True):
 
     with open(os.path.join(location, 'output.tsv'), 'w') as file3:
         print("index\tsentence\tpostag\tword_index\tword\tprediction", file=file3)
-        with open(os.path.join(location2, 'dev2.tsv'), 'r') as file1:
+        with open(os.path.join(location, 'dev2.tsv'), 'r') as file1:
             with open(os.path.join(location, 'predictions_dev2.txt'), 'r') as file2:
                 for line1, line2 in zip(file1, file2):
 
