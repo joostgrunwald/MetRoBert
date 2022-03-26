@@ -4,7 +4,7 @@ def main(location="empty", pos_tags=[]):
 
     if (location == "empty"):
         #get current location folder
-        __location__ = os.path.realpath(
+        location = os.path.realpath(
             os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
     #In else case location is user specified
@@ -12,9 +12,9 @@ def main(location="empty", pos_tags=[]):
 
     badsentencelist = []
     badindexlist = []
-    
+
     #Generate list of badwords
-    with open ('wrong_devs.txt') as misFile:
+    with open (os.path.join(location, 'wrong_devs.txt')) as misFile:
         for line in misFile:
 
             #extract sentence out of wrong devs
@@ -29,7 +29,7 @@ def main(location="empty", pos_tags=[]):
             badindexlist.append(line[:sentence_start-1])
 
     #Remove first rule from dev.tsv
-    with open('dev.tsv') as devfile, open('dev2.tsv', 'w') as outputfile:
+    with open(os.path.join(location, 'dev.tsv')) as devfile, open(os.path.join(location, 'dev2.tsv'), 'w') as outputfile:
         for line in devfile:
             if str(line[:5]) != "index":
                 outputfile.write(line)
@@ -41,7 +41,7 @@ def main(location="empty", pos_tags=[]):
     bad_indexes = 0
 
     #Add mistakeouptuts from wrong_devs to predictions.txt
-    with open('predictions_dev.txt') as predsin, open('predictions_dev2.txt', 'w') as predsout:
+    with open(os.path.join(location, 'predictions_dev.txt')) as predsin, open(os.path.join(location, 'predictions_dev2.txt'), 'w') as predsout:
         line_counter = 1
         previous_line = -1
         preprevious_line = -1
@@ -80,10 +80,10 @@ def main(location="empty", pos_tags=[]):
     minone_amount = 0
     out_of_bounds = 0
 
-    with open('output.tsv', 'w') as file3:
+    with open(os.path.join(location, 'output.tsv'), 'w') as file3:
         print("index\tsentence\tpostag\tword_index\tword\tprediction", file=file3)
-        with open('dev2.tsv', 'r') as file1:
-            with open('predictions_dev2.txt', 'r') as file2:
+        with open(os.path.join(location, 'dev2.tsv'), 'r') as file1:
+            with open(os.path.join(location, 'predictions_dev2.txt'), 'r') as file2:
                 for line1, line2 in zip(file1, file2):
 
                     #cleanup
