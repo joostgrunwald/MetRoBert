@@ -50,9 +50,12 @@ import fnmatch
 #import our own parser
 import pasmaparser_cov_melBert_allpos_clam as parser
 
+import pathlib
 #import our own model
 from MetRobert_run2 import main_dutch
 
+#import our own output prettifier
+import outputgenerator as outputgen
 
 #When the wrapper is started, the current working directory corresponds to the project directory, input files are in input/ , output files should go in output/ .
 
@@ -65,7 +68,8 @@ shellsafe = clam.common.data.shellsafe
 datafile = sys.argv[1]
 statusfile = sys.argv[2]
 outputdir = sys.argv[3]
-ALPINO_HOME = sys.argv[4]
+arguments = sys.argv[4]
+ALPINO_HOME = sys.argv[5]
 
 #If you make use of CUSTOM_FORMATS, you need to import your service configuration file here and set clam.common.data.CUSTOM_FORMATS
 #Moreover, you can import any other settings from your service configuration file as well:
@@ -82,60 +86,61 @@ clamdata = clam.common.data.getclamdata(datafile)
 clam.common.status.write(statusfile, "Starting...")
 
 
-#=========================================================================================================================
-
-# Below are some examples of how to access the input files and expected output
-# files. Choose and adapt one of examples A, B or C.
-
-#-- EXAMPLE A: Iterate over the program --
-
-# The 'program' describes exactly what output files will/should be generated on the
-# basis of what input files. It is the concretisation of the profiles and is the
-# most elegant method to set up your wrapper.
-
-#for outputfile, outputtemplate_id in clamdata.program.getoutputfiles():
-#   if outputtemplate_id == 'some_template_id':
-        #(Use outputtemplate_id to match against output templates)
-        #(You can access output metadata using outputfile.metadata[parameter_id])
-#       outputfilepath = str(outputfile) #example showing how to obtain the path to the file
-        #if you expect just a single input file for this output file, you can use this:
-#       inputfile, inputtemplate = clamdata.program.getinputfile(outputfilepath)
-        # ...do your thing... e.g., invoke a process that generates outputfilename on the basis of inputfilename (see the invoke your actual system example below)
-        #(You can access input metadata using inputfile.metadata[parameter_id])
-
-        #if, on the other hand, you expect multiple input files, then you can iterate over them:
-#       for inputfile, inputtemplate_id in clamdata.program.getinputfiles(outputfilename):
-#           if inputtemplate_id == 'some_input_template_id':
-#           inputfilepath = str(inputfile) #example showing how to obtain the path to the file
-            #...
-        #...do your thing... e.g., invoke a process that generates outputfilename on the basis all inputfilenames
-
 #-- EXAMPLE B: Iterate over all input files? --
 
 # This example iterates over all input files, it can be a simpler
 # method for setting up your wrapper:
 
-#########################################
-# WE CHECK IF WE RECEIVED A DEV.TSV FILE#
-#########################################
+########################################################
+# WE LOAD PARAMETER DECLARATIONS INTO PYTHON VARIABLES #
+########################################################
+
+#get actual yes/no values from parameters
+noun = clamdata['noun']
+verb = clamdata['verb']
+adj = clamdata['adj']
+adv = clamdata['adv']
+pron = clamdata['pron']
+det = clamdata['det']
+num = clamdata['num']
+
+#use parameter values to create a parameter list
+pos_list = []
+if str(noun) == "no":
+   pos_list.append("noun")
+if str(verb) == "no":
+   pos_list.append("verb")
+if str(adj) == "no":
+   pos_list.append("adj")
+if str(adv) == "no":
+   pos_list.append("adv")
+if str(pron) == "no":
+   pos_list.append("pron")
+if str(det) == "no":
+   pos_list.append("det")
+if str(num) == "yes":
+   pos_list.append("num")
+
+##########################################
+# WE CHECK IF WE RECEIVED A DEV.TSV FILE #
+##########################################
 
 #get template of last input item (should be only one input in case of dev.tsv file)
-inputtemplate = ""
+inputfile = ""
 
 input_files = 0
 stop_iteration = False
 alpino_files = True
 
 for inputfile in clamdata.input:
-    input_files = input_files + 1
-    inputtemplate = inputfile.metadata.inputtemplate   
-    if inputtemplate == 'devinput' and input_files > 1:
-        clam.common.status.write(statusfile, "ERROR, DEV FILE BUT MORE THEN ONE INPUT")
-        stop_iteration = True
-    if inputtemplate != 'alpinoinput':
-        alpino_files = False
+   input_files = input_files + 1
+   if ".tsv" in str(inputfile) and input_files > 1:
+      clam.common.status.write(statusfile, "ERROR, DEV FILE BUT MORE THEN ONE INPUT")
+      stop_iteration = True
+   if ".xml" in str(inputfile):
+      alpino_files = False
 
-if stop_iteration == False and inputtemplate == "devinput":
+if stop_iteration == False and str(inputfile).find(".tsv") != -1:
     # ! CASE 1: SINGLE DEV FILE SUPPLIED
 
     for devfile in clamdata.input:
@@ -148,7 +153,14 @@ if stop_iteration == False and inputtemplate == "devinput":
         #run the dutch model on the dev file
         main_dutch.main(dev_path)
 
-elif alpino_files == True:
+        #update program status
+        clam.common.status.write(statusfile, "Creating output.tsv table")
+
+        #prettify the output
+        outputgen.main(outputdir, pos_list, False)
+
+
+elif str(inputfile).find(".xml") != -1:
     # ! CASE 2: ALPINO FILES SUPPLIED
 
     #update program status
@@ -191,46 +203,48 @@ elif alpino_files == True:
     #run the dutch model on the dev file
     main_dutch.main(dev_file)
 
-elif inputtemplate != "devinput":
-    # ! CASE 3: SENTENCE FILES SUPPLIED
+    #update program status
+    clam.common.status.write(statusfile, "Creating output.tsv table")
 
-    #TODO: implement else case with alpino
+    #prettify the output
+    outputgen.main(outputdir, pos_list, True)
+
+elif str(inputfile).find(".tsv") == -1 and str(inputfile).find(".xml") == -1 and str(inputfile).find(".txt") != -1:
+    # ! CASE 3: SENTENCE FILES SUPPLIED
 
     ##################################
     # WE CLEAN UP THE INPUT SENTENCES#
     ##################################
 
     #Update user interface log
-    clam.common.status.write(statusfile, "Fixing input files...")
+    #clam.common.status.write(statusfile, "Fixing input files...")
+
+    #Replace all quotation marks in files
+    #findReplace(outputdir.replace("output","input"), "*.txt") 
+    #findReplace(outputdir.replace("output","input"), "*.tok")
 
     #helper function for file replacements
     def findReplace(directory, filePattern):
-        for path, dirs, files in os.walk(os.path.abspath(directory)):
-            for filename in fnmatch.filter(files, filePattern):
-                filepath = os.path.join(path, filename)
-                with open(filepath) as f:
-                    s = f.read()
+       for path, dirs, files in os.walk(os.path.abspath(directory)):
+          for filename in fnmatch.filter(files, filePattern):
+             filepath = os.path.join(path, filename)
+             s = pathlib.Path(filepath).read_text()
+             if s[:2] == "' ":
+                 s = s.replace("' ","'", 1)
 
-                if s[:2] == "' ":
-                    s = s.replace("' ","'", 1)
+             s = s.replace(" ',","',")
+             s = s.replace(" '',","'',")
 
-                s = s.replace(" ',","',")
-                s = s.replace(" '',","'',")
-
-                s = s.replace(" ' ", " '", 1)
-                s = s.replace(" ' ", "' ", 1)
-                s = s.replace(" ' ", " '", 1)
-                s = s.replace(" ' ", "' ", 1)
-                s = s.replace(" ' ", " '", 1)
-                s = s.replace(" ' ", "' ", 1)
-                s = s.replace(" ' ", " '", 1)
-                s = s.replace(" ' ", "' ", 1)
-                with open(filepath, "w") as f:
-                    f.write(s)
-
-    #Replace all quotation marks in files
-    findReplace(outputdir.replace("output","input"), "*.txt") 
-    findReplace(outputdir.replace("output","input"), "*.tok")
+             s = s.replace(" ' ", " '", 1)
+             s = s.replace(" ' ", "' ", 1)
+             s = s.replace(" ' ", " '", 1)
+             s = s.replace(" ' ", "' ", 1)
+             s = s.replace(" ' ", " '", 1)
+             s = s.replace(" ' ", "' ", 1)
+             s = s.replace(" ' ", " '", 1)
+             s = s.replace(" ' ", "' ", 1)
+             with open(filepath, "w") as f:
+                 f.write(s)
 
     #################################
     # WE USE ALPINO ON ALL OUR FILES#
@@ -241,6 +255,8 @@ elif inputtemplate != "devinput":
         inputtemplate = inputfile.metadata.inputtemplate
         inputfilepath = str(inputfile)
         basename = os.path.basename(inputfilepath)[:-4] #without extension
+
+        #? CASE: UNTOKENIZED
         if inputtemplate == 'untokinput':
             #we have to tokenize first
             clam.common.status.write(statusfile, "Tokenizing " + basename)
@@ -249,9 +265,25 @@ elif inputtemplate != "devinput":
             if r != 0:
                 print("Failure running ucto",file=sys.stderr)
                 sys.exit(2)
+
+            #Update user interface log
+            clam.common.status.write(statusfile, "Fixing input files...")
+
+            #Replace all quotation marks in files
+            findReplace(outputdir, "*.txt") 
+            findReplace(outputdir, "*.tok")
+
+        #? CASE: TOKENISED
         else:
             tokfile = os.path.abspath(inputfilepath)
             os.system("sed -i 's/^M$//' " + shellsafe(tokfile,'"'))  #convert nasty DOS end-of-line to proper unix
+
+            #Update user interface log
+            clam.common.status.write(statusfile, "Fixing input files...")
+
+            #Replace all quotation marks in files
+            findReplace(outputdir.replace("output","input"), "*.txt") 
+            findReplace(outputdir.replace("output","input"), "*.tok")
 
         clam.common.status.write(statusfile, "Running Alpino on " + basename)
 
@@ -320,7 +352,11 @@ elif inputtemplate != "devinput":
     #run the dutch model on the dev file
     main_dutch.main(dev_file)
 
-#TODO: graphically show outputs of model
+    #update program status
+    clam.common.status.write(statusfile, "Generating output.tsv file")
+
+    #prettify output
+    outputgen.main(outputdir, pos_list, True)
 
 #for inputfile in clamdata.input:
 #   inputtemplate = inputfile.metadata.inputtemplate
