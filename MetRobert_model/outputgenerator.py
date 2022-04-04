@@ -1,13 +1,14 @@
 import os
+import time
 
-def main(location = None, pos_tags = None, dev_out=True):
+def main(location=None, pos_tags=None, dev_out=True, dev_path=None):
     """ 
     location = place where all files are
     pos_tags = list of pos tags to exclude from output
     dev_out = bool that tells if the dev.tsv file is in the output folder
     """
 
-    if pos_tags is None:
+    if (pos_tags == None):
         pos_tags = []
 
     if (location == None):
@@ -36,10 +37,17 @@ def main(location = None, pos_tags = None, dev_out=True):
             #we generate a list of bad indexes
             badindexlist.append(line[:sentence_start-1])
 
+    misFile.close()
+
     #Adjust based on the question if dev.tsv is inside in or output
     location2 = ""
     if dev_out == False:
-        location2 = os.path.join(location.replace("output","input"), "dev.tsv.tok")
+        #case dev file is input
+        if dev_path is not None:
+            print("dev not none")
+            location2 = os.path.join(location.replace("output",""), dev_path)
+        else:
+            location2 = os.path.join(location.replace("output","input"), "dev.tsv.tok")
     else:
         location2 = os.path.join(location, 'dev.tsv')
 
@@ -51,7 +59,9 @@ def main(location = None, pos_tags = None, dev_out=True):
                 #if all(bad_sen not in line for bad_sen in badsentencelist):
                 #   outputfile.write(line)
 
-    #outputfile.close()
+    outputfile.close()
+    devfile.close()
+
     missing_lines = 0
     bad_indexes = 0
 
@@ -62,9 +72,9 @@ def main(location = None, pos_tags = None, dev_out=True):
         preprevious_line = -1
 
         for line in predsin:
-
             #remove fragment part 
             pred = line.replace("dev-COV_fragment01 ","")
+            print("line: ")
 
             #find first space
             space = pred.find(" ")
@@ -90,6 +100,9 @@ def main(location = None, pos_tags = None, dev_out=True):
 
             preprevious_line = previous_line
             previous_line = int(index)
+
+    predsin.close()
+    predsout.close()
 
     error_amount = 0
     minone_amount = 0
