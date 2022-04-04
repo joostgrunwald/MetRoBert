@@ -1,13 +1,16 @@
 import os
 
-def main(location="empty", pos_tags=[], dev_out=True):
+def main(location = None, pos_tags = None, dev_out=True):
     """ 
     location = place where all files are
     pos_tags = list of pos tags to exclude from output
     dev_out = bool that tells if the dev.tsv file is in the output folder
     """
 
-    if (location == "empty"):
+    if pos_tags is None:
+        pos_tags = []
+
+    if (location == None):
         #get current location folder
         location = os.path.realpath(
             os.path.join(os.getcwd(), os.path.dirname(__file__)))
