@@ -118,7 +118,7 @@ if str(pron) == "no":
    pos_list.append("pron")
 if str(det) == "no":
    pos_list.append("det")
-if str(num) == "yes":
+if str(num) == "no":
    pos_list.append("num")
 
 ##########################################
@@ -141,23 +141,23 @@ for inputfile in clamdata.input:
       alpino_files = False
 
 if stop_iteration == False and str(inputfile).find(".tsv") != -1:
-    # ! CASE 1: SINGLE DEV FILE SUPPLIED
+   # ! CASE 1: SINGLE DEV FILE SUPPLIED
 
-    for devfile in clamdata.input:
-        dev_path = str(devfile)
-        print(dev_path)
+   dev_path = ""
+   for devfile in clamdata.input:
+      dev_path = str(devfile)
 
-        #update program status
-        clam.common.status.write(statusfile, "Running MetRobert on dev.tsv file")
+   #update program status
+   clam.common.status.write(statusfile, "Running MetRobert on dev.tsv file")
 
-        #run the dutch model on the dev file
-        main_dutch.main(dev_path)
+   #run the dutch model on the dev file
+   main_dutch.main(dev_path)
 
-        #update program status
-        clam.common.status.write(statusfile, "Creating output.tsv table")
+   #update program status
+   clam.common.status.write(statusfile, "Creating output.tsv table")
 
-        #prettify the output
-        outputgen.main(outputdir, pos_list, False)
+   #prettify the output
+   outputgen.main(outputdir, pos_list, False, dev_path)
 
 
 elif str(inputfile).find(".xml") != -1:
@@ -207,7 +207,7 @@ elif str(inputfile).find(".xml") != -1:
     clam.common.status.write(statusfile, "Creating output.tsv table")
 
     #prettify the output
-    outputgen.main(outputdir, pos_list, True)
+    outputgen.main(outputdir, pos_list, True, None)
 
 elif str(inputfile).find(".tsv") == -1 and str(inputfile).find(".xml") == -1 and str(inputfile).find(".txt") != -1:
     # ! CASE 3: SENTENCE FILES SUPPLIED
@@ -232,6 +232,27 @@ elif str(inputfile).find(".tsv") == -1 and str(inputfile).find(".xml") == -1 and
              if s[:2] == "' ":
                  s = s.replace("' ","'", 1)
 
+             #extra checks added
+             s = s.replace("''", "")
+             s = s.replace(" ,,", " ")
+             s = s.replace(",,", " ")
+             s = s.replace("\"", "")
+             s = s.replace(" , ", ", ")
+             s = s.replace(" \\ ", "\\")
+             s = s.replace(" / ", "/")
+             s = s.replace(" :", ":")
+             s = s.replace(",, ", "")
+
+             #second round of extra checks
+             s = s.replace(", ,", "")
+             s = s.replace(" ?", "?")
+             s = s.replace(" - ","- ")
+
+             #third round of extra checks
+             s = s.replace(" ( "," (")
+             s = s.replace(" ) ", ") ")
+             s = s.replace(" . ", ". ")
+
              s = s.replace(" ',","',")
              s = s.replace(" '',","'',")
 
@@ -244,6 +265,7 @@ elif str(inputfile).find(".tsv") == -1 and str(inputfile).find(".xml") == -1 and
              s = s.replace(" ' ", " '", 1)
              s = s.replace(" ' ", "' ", 1)
              with open(filepath, "w") as f:
+                 print(s)
                  f.write(s)
 
     #################################
@@ -350,7 +372,7 @@ elif str(inputfile).find(".tsv") == -1 and str(inputfile).find(".xml") == -1 and
     clam.common.status.write(statusfile, "Generating output.tsv file")
 
     #prettify output
-    outputgen.main(outputdir, pos_list, True)
+    outputgen.main(outputdir, pos_list, True, None)
 
 #for inputfile in clamdata.input:
 #   inputtemplate = inputfile.metadata.inputtemplate
