@@ -1,17 +1,20 @@
 import os
-import time
 
-def main(location=None, pos_tags=None, dev_out=True, dev_path=None):
-    """ 
-    location = place where all files are
-    pos_tags = list of pos tags to exclude from output
-    dev_out = bool that tells if the dev.tsv file is in the output folder
-    """
+def main(location=None, pos_tags = None, dev_out=True, dev_path=None, sof2="yes"):
+    """_summary_
 
-    if (pos_tags == None):
+    Args:
+        location (str, optional): place where all files are Defaults to None.
+        pos_tags (list_, optional): ist of pos tags to exclude from output. Defaults to None.
+        dev_out (bool, optional): bool that tells if the dev.tsv file is in the output folder. Defaults to True.
+        dev_path (str, optional): path of dev file. Defaults to None.
+        sof2 (str, optional): wether to add second softmax predictions. Defaults to "yes".
+    """    
+
+    if pos_tags is None:
         pos_tags = []
-
-    if (location == None):
+        
+    if location is None:
         #get current location folder
         location = os.path.realpath(
             os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -44,7 +47,6 @@ def main(location=None, pos_tags=None, dev_out=True, dev_path=None):
     if dev_out == False:
         #case dev file is input
         if dev_path is not None:
-            print("dev not none")
             location2 = os.path.join(location.replace("output",""), dev_path)
         else:
             location2 = os.path.join(location.replace("output","input"), "dev.tsv.tok")
@@ -67,14 +69,11 @@ def main(location=None, pos_tags=None, dev_out=True, dev_path=None):
 
     #Add mistakeouptuts from wrong_devs to predictions.txt
     with open(os.path.join(location, 'predictions_dev.txt')) as predsin, open(os.path.join(location, 'predictions_dev2.txt'), 'w') as predsout:
-        line_counter = 1
         previous_line = -1
-        preprevious_line = -1
 
         for line in predsin:
             #remove fragment part 
             pred = line.replace("dev-COV_fragment01 ","")
-            print("line: ")
 
             #find first space
             space = pred.find(" ")
@@ -87,8 +86,6 @@ def main(location=None, pos_tags=None, dev_out=True, dev_path=None):
                 missing_lines = missing_lines + 1
                 predsout.write(f"dev-COV_fragment01 {int(index)-1} 0" + ",-1\n")
 
-                #missing line
-
             #only write pred if not equal to index
             if index in badindexlist:
                 bad_indexes = bad_indexes + 1
@@ -96,9 +93,36 @@ def main(location=None, pos_tags=None, dev_out=True, dev_path=None):
 
             else:
                 predsout.write(line)
-                line_counter = line_counter + 1
 
-            preprevious_line = previous_line
+            previous_line = int(index)
+
+    predsin.close()
+    predsout.close()
+    
+    #Add mistakeouptuts from wrong_devs to predictions.txt
+    with open(os.path.join(location, 'predictions_dev_soft.txt')) as predsin, open(os.path.join(location, 'predictions_dev_soft2.txt'), 'w') as predsout:
+        previous_line = -1
+
+        for line in predsin:
+            #remove fragment part 
+            pred = line.replace("dev-COV_fragment01 ","")
+
+            #find first space
+            space = pred.find(" ")
+
+            #index of prediction
+            index = pred[:space]
+
+            if previous_line != -1 and (previous_line+1) != int(index):
+                #print(index)
+                predsout.write(f"dev-COV_fragment01 {int(index)-1} 0" + ",-1\n")
+
+            #only write pred if not equal to index
+            if index in badindexlist:
+                predsout.write(f"dev-COV_fragment01 {index} 0" + ",-1\n")
+
+            else:
+                predsout.write(line)
             previous_line = int(index)
 
     predsin.close()
@@ -111,12 +135,14 @@ def main(location=None, pos_tags=None, dev_out=True, dev_path=None):
     with open(os.path.join(location, 'output.tsv'), 'w') as file3:
         print("index\tsentence\tpostag\tword_index\tword\tprediction", file=file3)
         with open(os.path.join(location, 'dev2.tsv'), 'r') as file1:
-            with open(os.path.join(location, 'predictions_dev2.txt'), 'r') as file2:
-                for line1, line2 in zip(file1, file2):
+            with open(os.path.join(location, 'predictions_dev2.txt'), 'r') as file2, open(os.path.join(location, 'predictions_dev_soft2.txt'), 'r') as file4:
+                for line1, line2, line3 in zip(file1, file2, file4):
 
                     #cleanup
                     line2b = line2.strip().replace("dev-COV_fragment01","")
                     komma = line2b.find(",")
+                    line3b = line3.strip().replace("dev-COV-fragment01","")
+                    komma2 = line3b.find(",")
                     tab = line1.find("\t")
                     line1 = line1.strip().replace("COV_fragment01 ","").replace("\t0\t","\t",1)
 
@@ -156,10 +182,11 @@ def main(location=None, pos_tags=None, dev_out=True, dev_path=None):
                     if word == "ERROR":
                         error_amount = error_amount + 1
 
-                    print(line1, "\t", word, "\t", line2.strip().replace("dev-COV_fragment01 ","")[komma:], file=file3)
+                    print(line1, "\t", word, "\t", line2.strip().replace("dev-COV_fragment01 ","")[komma:], line3.strip().replace("dev-COV_fragment01 ","")[komma2:], file=file3)
 
 
     #? DIAGNOSTICS
+    print("")
     print("BADINDEXLIST")
     print(f"wrong dev bad indexes: {len(badindexlist)} times")
     print("")
@@ -171,6 +198,7 @@ def main(location=None, pos_tags=None, dev_out=True, dev_path=None):
     print(f"out of bounds: {out_of_bounds} times")
     print(f"-1 supplied: {minone_amount} times")
     print(f"word error: {error_amount} times")
+    print("")
 
     if(error_amount != out_of_bounds + minone_amount):
         print("ERROR: out of bounds cases + -1 cases do not equal amount of errors")
