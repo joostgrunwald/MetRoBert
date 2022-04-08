@@ -99,34 +99,35 @@ def main(location=None, pos_tags = None, dev_out=True, dev_path=None, sof2="yes"
     predsin.close()
     predsout.close()
     
-    #Add mistakeouptuts from wrong_devs to predictions.txt
-    with open(os.path.join(location, 'predictions_dev_soft.txt')) as predsin, open(os.path.join(location, 'predictions_dev_soft2.txt'), 'w') as predsout:
-        previous_line = -1
+    if sof2 == "yes":
+        #Add mistakeouptuts from wrong_devs to predictions.txt
+        with open(os.path.join(location, 'predictions_dev_soft.txt')) as predsin, open(os.path.join(location, 'predictions_dev_soft2.txt'), 'w') as predsout:
+            previous_line = -1
 
-        for line in predsin:
-            #remove fragment part 
-            pred = line.replace("dev-COV_fragment01 ","")
+            for line in predsin:
+                #remove fragment part 
+                pred = line.replace("dev-COV_fragment01 ","")
 
-            #find first space
-            space = pred.find(" ")
+                #find first space
+                space = pred.find(" ")
 
-            #index of prediction
-            index = pred[:space]
+                #index of prediction
+                index = pred[:space]
 
-            if previous_line != -1 and (previous_line+1) != int(index):
-                #print(index)
-                predsout.write(f"dev-COV_fragment01 {int(index)-1} 0" + ",-1\n")
+                if previous_line != -1 and (previous_line+1) != int(index):
+                    #print(index)
+                    predsout.write(f"dev-COV_fragment01 {int(index)-1} 0" + ",-1\n")
 
-            #only write pred if not equal to index
-            if index in badindexlist:
-                predsout.write(f"dev-COV_fragment01 {index} 0" + ",-1\n")
+                #only write pred if not equal to index
+                if index in badindexlist:
+                    predsout.write(f"dev-COV_fragment01 {index} 0" + ",-1\n")
 
-            else:
-                predsout.write(line)
-            previous_line = int(index)
+                else:
+                    predsout.write(line)
+                previous_line = int(index)
 
-    predsin.close()
-    predsout.close()
+        predsin.close()
+        predsout.close()
 
     error_amount = 0
     minone_amount = 0
@@ -135,54 +136,102 @@ def main(location=None, pos_tags = None, dev_out=True, dev_path=None, sof2="yes"
     with open(os.path.join(location, 'output.tsv'), 'w') as file3:
         print("index\tsentence\tpostag\tword_index\tword\tprediction", file=file3)
         with open(os.path.join(location, 'dev2.tsv'), 'r') as file1:
-            with open(os.path.join(location, 'predictions_dev2.txt'), 'r') as file2, open(os.path.join(location, 'predictions_dev_soft2.txt'), 'r') as file4:
-                for line1, line2, line3 in zip(file1, file2, file4):
+            if sof2 == "yes":
+                with open(os.path.join(location, 'predictions_dev2.txt'), 'r') as file2, open(os.path.join(location, 'predictions_dev_soft2.txt'), 'r') as file4:
+                    for line1, line2, line3 in zip(file1, file2, file4):
 
-                    #cleanup
-                    line2b = line2.strip().replace("dev-COV_fragment01","")
-                    komma = line2b.find(",")
-                    line3b = line3.strip().replace("dev-COV-fragment01","")
-                    komma2 = line3b.find(",")
-                    tab = line1.find("\t")
-                    line1 = line1.strip().replace("COV_fragment01 ","").replace("\t0\t","\t",1)
+                        #cleanup
+                        line2b = line2.strip().replace("dev-COV_fragment01","")
+                        komma = line2b.find(",")
+                        line3b = line3.strip().replace("dev-COV-fragment01","")
+                        komma2 = line3b.find(",")
+                        tab = line1.find("\t")
+                        line1 = line1.strip().replace("COV_fragment01 ","").replace("\t0\t","\t",1)
 
-                    #retrieve sentence
-                    tab = line1.find("\t")
-                    point = line1.find("\t",tab+2)
-                    sentence = line1[tab+1:point]
+                        #retrieve sentence
+                        tab = line1.find("\t")
+                        point = line1.find("\t",tab+2)
+                        sentence = line1[tab+1:point]
 
-                    #retrieve word index
-                    ltab = line1.rfind("\t")
-                    word_index = line1[ltab+1:]
+                        #retrieve word index
+                        ltab = line1.rfind("\t")
+                        word_index = line1[ltab+1:]
 
-                    #retrieve pos tag
-                    ltab2 = line1.rfind("\t",0,ltab)
-                    pos_tag = line1[ltab2+1:ltab]
+                        #retrieve pos tag
+                        ltab2 = line1.rfind("\t",0,ltab)
+                        pos_tag = line1[ltab2+1:ltab]
 
 
-                    #! FILTER OUT UNWANTED POS TAGS
-                    toskip = False
-                    for pos in pos_tags:
-                        if pos_tag.lower().find(pos) != -1:
-                            toskip = True
-                    if toskip == True:
-                        continue
+                        #! FILTER OUT UNWANTED POS TAGS
+                        toskip = False
+                        for pos in pos_tags:
+                            if pos_tag.lower().find(pos) != -1:
+                                toskip = True
+                        if toskip == True:
+                            continue
 
-                    senlist = sentence.split()
+                        senlist = sentence.split()
 
-                    word = "ERROR"
-                    if "-1" in str(line2):
-                        minone_amount = minone_amount + 1
+                        word = "ERROR"
+                        if "-1" in str(line2):
+                            minone_amount = minone_amount + 1
 
-                    elif int(word_index) <= len(senlist):
-                        word = senlist[int(word_index)]
-                    else: 
-                        out_of_bounds = out_of_bounds + 1
-                    #? ERROR CAUSED BY MISSING PREDICTION (NO -1 PRESENT)
-                    if word == "ERROR":
-                        error_amount = error_amount + 1
+                        elif int(word_index) <= len(senlist):
+                            word = senlist[int(word_index)]
+                        else: 
+                            out_of_bounds = out_of_bounds + 1
+                        #? ERROR CAUSED BY MISSING PREDICTION (NO -1 PRESENT)
+                        if word == "ERROR":
+                            error_amount = error_amount + 1
 
-                    print(line1, "\t", word, "\t", line2.strip().replace("dev-COV_fragment01 ","")[komma:], line3.strip().replace("dev-COV_fragment01 ","")[komma2:], file=file3)
+                        print(line1, "\t", word, "\t", line2.strip().replace("dev-COV_fragment01 ","")[komma:], line3.strip().replace("dev-COV_fragment01 ","")[komma2:], file=file3)
+            else:
+                with open(os.path.join(location, 'predictions_dev2.txt'), 'r') as file2:
+                    for line1, line2 in zip(file1, file2):
+
+                        #cleanup
+                        line2b = line2.strip().replace("dev-COV_fragment01","")
+                        komma = line2b.find(",")
+                        tab = line1.find("\t")
+                        line1 = line1.strip().replace("COV_fragment01 ","").replace("\t0\t","\t",1)
+
+                        #retrieve sentence
+                        tab = line1.find("\t")
+                        point = line1.find("\t",tab+2)
+                        sentence = line1[tab+1:point]
+
+                        #retrieve word index
+                        ltab = line1.rfind("\t")
+                        word_index = line1[ltab+1:]
+
+                        #retrieve pos tag
+                        ltab2 = line1.rfind("\t",0,ltab)
+                        pos_tag = line1[ltab2+1:ltab]
+
+
+                        #! FILTER OUT UNWANTED POS TAGS
+                        toskip = False
+                        for pos in pos_tags:
+                            if pos_tag.lower().find(pos) != -1:
+                                toskip = True
+                        if toskip == True:
+                            continue
+
+                        senlist = sentence.split()
+
+                        word = "ERROR"
+                        if "-1" in str(line2):
+                            minone_amount = minone_amount + 1
+
+                        elif int(word_index) <= len(senlist):
+                            word = senlist[int(word_index)]
+                        else: 
+                            out_of_bounds = out_of_bounds + 1
+                        #? ERROR CAUSED BY MISSING PREDICTION (NO -1 PRESENT)
+                        if word == "ERROR":
+                            error_amount = error_amount + 1
+
+                        print(line1, "\t", word, "\t", line2.strip().replace("dev-COV_fragment01 ","")[komma:], file=file3)              
 
 
     #? DIAGNOSTICS
