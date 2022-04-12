@@ -1,6 +1,6 @@
-# MetRoBert
+# MetRuBert
 
-MetRobert is an automatic metaphor identification model in Dutch and English.
+MetRuBert is an automatic metaphor identification model in Dutch and English.
 The principles are ment to show that the model can be easily adjusted for use in any other language.
 A tutorial in using this for other languages will follow.
 
