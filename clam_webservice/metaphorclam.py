@@ -42,11 +42,11 @@ SYSTEM_ID = "metaphorclam"
 SYSTEM_NAME = "MetRobert"
 
 #An informative description for this system (this should be fairly short, about one paragraph, and may not contain HTML)
-SYSTEM_DESCRIPTION = "MetRobert is a metaphor detection model for Dutch and English, it is developed by Joost Grunwald at the Radboud University Nijmegen. It will automaticly try to predict metaphors in text. You can upload either tokenized or untokenized files (which will be automaticly tokenized for you using ucto), the output will contain of a xip file contianing XML files, one for each sentence in the input document."
+SYSTEM_DESCRIPTION = "MetRobert is a metaphor detection model for Dutch and English, it is developed by Joost Grunwald at the Radboud University Nijmegen. It will automaticly try to predict metaphors in text. You can upload either tokenized or untokenized files (which will be automaticly tokenized for you using ucto), the output will consist of a .tsv file used for the input of the model and of the predictions before and after softmax and boolean conversion have been applied. We also deliver a file with save test inputs."
 
 #A version label of the underlying tool and/or this CLAM wrapper
 #(If you can derive this dynamically then that is strongly recommended!)
-SYSTEM_VERSION = 0.1
+SYSTEM_VERSION = 0.2
 
 #The author(s) of the underlying tool and/or this CLAM wrapper
 #(If you can derive this dynamically then that is strongly recommended!)
@@ -119,15 +119,16 @@ if host == "yourhostname":
     #set security realm, a required component for hashing passwords (will default to SYSTEM_ID if not set)
     #REALM = SYSTEM_ID
 
+    #USERS = None #no user authentication/security (this is not recommended for production environments!)
     #If you want to enable user-based security, you can define a dictionary
     #of users and (hashed) passwords here. The actual authentication will proceed
     #as HTTP Digest Authentication. Although being a convenient shortcut,
     #using pwhash and plaintext password in this code is not secure!!
 
     USERS = {
-         'jgrunwald': '631e314134027c2b443ef61a08d4116a',
-         'wspooren': '2d72a01cc4f7aecad30cef8c42aea5da',
-         'greijnierse': '2d72a01cc4f7aecad30cef8c42aea5da',
+	 'jgrunwald': '631e314134027c2b443ef61a08d4116a',
+	 'wspooren': '2d72a01cc4f7aecad30cef8c42aea5da',
+	 'greijnierse': '2d72a01cc4f7aecad30cef8c42aea5da',
     }
 
     #List of usernames that are administrator and can access the administrative web-interface (on URL /admin/)
@@ -171,7 +172,7 @@ else:
 # ======== WEB-APPLICATION STYLING =============
 
 #Choose a style (has to be defined as a CSS file in clam/style/ ). You can copy, rename and adapt it to make your own style
-STYLE = 'classic'
+STYLE = 'style_joost'
 
 # ======== ENABLED FORMATS ===========
 
@@ -257,7 +258,45 @@ PROFILES = [
             removeextension='.txt',
             multi=True,
         ),
-    )
+    ),
+
+    #Profile(
+     #   InputTemplate('devinput', PlainTextFormat,"Dev.tsv training file (For rerunning the model)",
+      #      StaticParameter(id='encoding',name='Encoding',description='The character encoding of the file', value='utf-8'), #note that encoding is required if you work with PlainTextFormat
+            #MSWordConverter(id='docconv',label='Convert from MS Word Document'),
+       #     extension='.tsv',
+        #    unique=True,
+             #set unique=True if the user may only upload a file for this input template once. Set multi=True if you the user may upload multiple of such files
+       # ),
+        #------------------------------------------------------------------------------------------------------------------------
+       # OutputTemplate('modeloutput',PlainTextFormat,'Predictions and analysis from the model',
+       #     extension='.txt', #set an extension or set a filename:
+       #     unique=True,
+       # ),
+       # OutputTemplate('devfile',PlainTextFormat,'The generated dev.tsv files',
+       #     extension='.tsv', #set an extension or set a filename:
+       #     unique=True,
+       # ),
+   # ),
+   # Profile(
+      #  InputTemplate('alpinoinput', PlainTextFormat,"Alpino .xml files (For rerunning the model)",
+          #  StaticParameter(id='encoding',name='Encoding',description='The character encoding of the file', value='utf-8'), #note that encoding is required if you work with PlainTextFormat
+            #MSWordConverter(id='docconv',label='Convert from MS Word Document'),
+         #   extension='.xml',
+        #    unique=True, #set unique=True if the user may only upload a file for this input template once. Set multi=True if you the user may upload multiple of such files
+       # ),
+        #------------------------------------------------------------------------------------------------------------------------
+       # OutputTemplate('modeloutput',PlainTextFormat,'Predictions and analysis from the model',
+       #     extension='.txt', #set an extension or set a filename:
+       #     unique=True,
+       # ),
+       # OutputTemplate('devfile',PlainTextFormat,'The generated dev.tsv files',
+       #     extension='.tsv', #set an extension or set a filename:
+       #     unique=True,
+       # ),
+
+   # )
+
 ]
 
 # ======== PROJECTS: COMMAND ===========
@@ -284,7 +323,8 @@ PROFILES = [
 #     $PARAMETERS      - List of chosen parameters, using the specified flags
 #
 COMMAND = WEBSERVICEDIR + "/metaphorclam_wrapper.py $DATAFILE $STATUSFILE $OUTPUTDIRECTORY " + ALPINO_HOME
-
+print("COMMAND")
+print(COMMAND)
 #Or for the shell variant:
 #COMMAND = WEBSERVICEDIR + "/metaphorclam_wrapper.sh $STATUSFILE $INPUTDIRECTORY $OUTPUTDIRECTORY $PARAMETERS"
 
@@ -296,14 +336,29 @@ COMMAND = WEBSERVICEDIR + "/metaphorclam_wrapper.py $DATAFILE $STATUSFILE $OUTPU
 #groups. In the form of a list of (groupname, parameters) tuples. The parameters
 #are a list of instances from common/parameters.py
 
-PARAMETERS = []
-#PARAMETERS =  [
-#    ('Group title', [   #change or comment this
+#PARAMETERS = []
+PARAMETERS =  [
+    ('POS TAGS', [   #change or comment this
         #BooleanParameter(id='createlexicon',name='Create Lexicon',description='Generate a separate overall lexicon?'),
-        #ChoiceParameter(id='casesensitive',name='Case Sensitivity',description='Enable case sensitive behaviour?', choices=['yes','no'],default='no'),
+        ChoiceParameter(id='noun',name='Noun Prediction',description='Enable predictions of metaphors for nouns?', choices=['yes','no'],default='yes'),
+        ChoiceParameter(id='verb',name='Verb Prediction',description='Enable predictions of metaphors for verbs?', choices=['yes','no'],default='yes'),
+        ChoiceParameter(id='adv',name='Adverb Prediction',description='Enable predictions of metaphors for adverbs?', choices=['yes','no'],default='yes'),
+        ChoiceParameter(id='adj',name='Adjective Prediction',description='Enable predictions of metaphors for adjectives?', choices=['yes','no'],default='yes'),
+        ChoiceParameter(id='det',name='Determinant Prediction',description='Enable predictions of metaphors for determinants?', choices=['yes','no'],default='yes'),
+        ChoiceParameter(id='pron',name='Pronoun Prediction',description='Enable predictions of metaphors for pronouns?', choices=['yes','no'],default='yes'),
+        ChoiceParameter(id='num',name='Number Prediction',description='Enable predictions of metaphors for numbers?', choices=['yes','no'],default='yes'),
+
         #StringParameter(id='author',name='Author',description='Sign output metadata with the specified author name',maxlength=255),
-#    ] )
-#]
+    ] ),
+    ('OUTPUT FILES', [ # change or comment this
+        ChoiceParameter(id='alp',name='Alpino output',description='Save the output of Alpino and return it to user?', choices=['yes','no'],default='no'),
+        ChoiceParameter(id='tok',name='Ucto output',description='Save the output of Ucto and return it to user?', choices=['yes','no'],default='no'),
+        ChoiceParameter(id='unres',name='Unedited output',description='Save the pure output of the model and return it to user?', choices=['yes','no'],default='no'),
+        ChoiceParameter(id='sof',name='Softmax file',description='Save the softmax file output of the model and return it to user?', choices=['yes','no'],default='yes'),
+        ChoiceParameter(id='sof2',name='Softmax output',description='Save the softmax outputs inside the output.tsv files?', choices=['yes','no'],default='yes'),
+    ] )
+
+]
 
 
 # ======= ACTIONS =============
