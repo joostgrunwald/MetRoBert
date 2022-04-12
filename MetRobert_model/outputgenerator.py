@@ -2,7 +2,6 @@ import os
 
 def main(location=None, pos_tags = None, dev_out=True, dev_path=None, sof2="yes"):
     """_summary_
-
     Args:
         location (str, optional): place where all files are Defaults to None.
         pos_tags (list_, optional): ist of pos tags to exclude from output. Defaults to None.
@@ -134,9 +133,9 @@ def main(location=None, pos_tags = None, dev_out=True, dev_path=None, sof2="yes"
     out_of_bounds = 0
 
     with open(os.path.join(location, 'output.tsv'), 'w') as file3:
-        print("index\tsentence\tpostag\tword_index\tword\tprediction", file=file3)
         with open(os.path.join(location, 'dev2.tsv'), 'r') as file1:
             if sof2 == "yes":
+                print("index\tsentence\tpostag\tword_index\tword\tprediction\tsoftmax pred", file=file3)
                 with open(os.path.join(location, 'predictions_dev2.txt'), 'r') as file2, open(os.path.join(location, 'predictions_dev_soft2.txt'), 'r') as file4:
                     for line1, line2, line3 in zip(file1, file2, file4):
 
@@ -150,8 +149,8 @@ def main(location=None, pos_tags = None, dev_out=True, dev_path=None, sof2="yes"
 
                         #retrieve sentence
                         tab = line1.find("\t")
-                        point = line1.find("\t",tab+2)
-                        sentence = line1[tab+1:point]
+                        end = line1.find("\t",tab+2)
+                        sentence = line1[tab+1:end]
 
                         #retrieve word index
                         ltab = line1.rfind("\t")
@@ -184,8 +183,9 @@ def main(location=None, pos_tags = None, dev_out=True, dev_path=None, sof2="yes"
                         if word == "ERROR":
                             error_amount = error_amount + 1
 
-                        print(line1, "\t", word, "\t", line2.strip().replace("dev-COV_fragment01 ","")[komma:], line3.strip().replace("dev-COV_fragment01 ","")[komma2:], file=file3)
+                        print(line1, "\t", word, "\t", line2.strip().replace("dev-COV_fragment01 ","")[komma:], "\t", line3.strip()[komma2+1:], file=file3)
             else:
+                print("index\tsentence\tpostag\tword_index\tword\tprediction", file=file3)
                 with open(os.path.join(location, 'predictions_dev2.txt'), 'r') as file2:
                     for line1, line2 in zip(file1, file2):
 
