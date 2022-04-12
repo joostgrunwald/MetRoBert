@@ -281,43 +281,44 @@ elif str(inputfile).find(".tsv") == -1 and str(inputfile).find(".xml") == -1 and
             for filename in fnmatch.filter(files, filePattern):
                 filepath = os.path.join(path, filename)
                 s = pathlib.Path(filepath).read_text()
-            if s[:2] == "' ":
-                s = s.replace("' ","'", 1)
+                
+                if s[:2] == "' ":
+                    s = s.replace("' ","'", 1)
 
-            #extra checks added
-            s = s.replace("''", "")
-            s = s.replace(" ,,", " ")
-            s = s.replace(",,", " ")
-            s = s.replace("\"", "")
-            s = s.replace(" , ", ", ")
-            s = s.replace(" \\ ", "\\")
-            s = s.replace(" / ", "/")
-            s = s.replace(" :", ":")
-            s = s.replace(",, ", "")
+                #extra checks added
+                s = s.replace("''", "")
+                s = s.replace(" ,,", " ")
+                s = s.replace(",,", " ")
+                s = s.replace("\"", "")
+                s = s.replace(" , ", ", ")
+                s = s.replace(" \\ ", "\\")
+                s = s.replace(" / ", "/")
+                s = s.replace(" :", ":")
+                s = s.replace(",, ", "")
 
-            #second round of extra checks
-            s = s.replace(", ,", "")
-            s = s.replace(" ?", "?")
-            s = s.replace(" - ","- ")
+                #second round of extra checks
+                s = s.replace(", ,", "")
+                s = s.replace(" ?", "?")
+                s = s.replace(" - ","- ")
 
-            #third round of extra checks
-            s = s.replace(" ( "," (")
-            s = s.replace(" ) ", ") ")
-            s = s.replace(" . ", ". ")
+                #third round of extra checks
+                s = s.replace(" ( "," (")
+                s = s.replace(" ) ", ") ")
+                s = s.replace(" . ", ". ")
 
-            s = s.replace(" ',","',")
-            s = s.replace(" '',","'',")
+                s = s.replace(" ',","',")
+                s = s.replace(" '',","'',")
 
-            s = s.replace(" ' ", " '", 1)
-            s = s.replace(" ' ", "' ", 1)
-            s = s.replace(" ' ", " '", 1)
-            s = s.replace(" ' ", "' ", 1)
-            s = s.replace(" ' ", " '", 1)
-            s = s.replace(" ' ", "' ", 1)
-            s = s.replace(" ' ", " '", 1)
-            s = s.replace(" ' ", "' ", 1)
-            with open(filepath, "w") as f:
-                f.write(s)
+                s = s.replace(" ' ", " '", 1)
+                s = s.replace(" ' ", "' ", 1)
+                s = s.replace(" ' ", " '", 1)
+                s = s.replace(" ' ", "' ", 1)
+                s = s.replace(" ' ", " '", 1)
+                s = s.replace(" ' ", "' ", 1)
+                s = s.replace(" ' ", " '", 1)
+                s = s.replace(" ' ", "' ", 1)
+                with open(filepath, "w") as f:
+                    f.write(s)
 
     #################################
     # WE USE ALPINO ON ALL OUR FILES#
