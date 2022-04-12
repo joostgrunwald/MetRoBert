@@ -95,6 +95,9 @@ clam.common.status.write(statusfile, "Starting...")
 # WE LOAD PARAMETER DECLARATIONS INTO PYTHON VARIABLES #
 ########################################################
 
+################
+# POS PARAMETERS
+
 #get actual yes/no values from parameters
 noun = clamdata['noun']
 verb = clamdata['verb']
@@ -121,6 +124,16 @@ if str(det) == "no":
 if str(num) == "no":
    pos_list.append("num")
 
+###################
+# OUTPUT PARAMETERS
+
+#get actual yes/no values from parameters
+alp = clamdata['alp']
+tok = clamdata['tok']
+sof = clamdata['sof']
+unres = clamdata['unres']
+sof2 = clamdata['sof2']
+
 ##########################################
 # WE CHECK IF WE RECEIVED A DEV.TSV FILE #
 ##########################################
@@ -133,32 +146,49 @@ stop_iteration = False
 alpino_files = True
 
 for inputfile in clamdata.input:
-   input_files = input_files + 1
-   if ".tsv" in str(inputfile) and input_files > 1:
-      clam.common.status.write(statusfile, "ERROR, DEV FILE BUT MORE THEN ONE INPUT")
-      stop_iteration = True
-   if ".xml" in str(inputfile):
-      alpino_files = False
+    input_files = input_files + 1
+    if ".tsv" in str(inputfile) and input_files > 1:
+        clam.common.status.write(statusfile, "ERROR, DEV FILE BUT MORE THEN ONE INPUT")
+        stop_iteration = True
+    if ".xml" in str(inputfile):
+        alpino_files = False
 
 if stop_iteration == False and str(inputfile).find(".tsv") != -1:
-   # ! CASE 1: SINGLE DEV FILE SUPPLIED
+    # ! CASE 1: SINGLE DEV FILE SUPPLIED
 
-   dev_path = ""
-   for devfile in clamdata.input:
-      dev_path = str(devfile)
+    dev_path = ""
+    for devfile in clamdata.input:
+        dev_path = str(devfile)
 
-   #update program status
-   clam.common.status.write(statusfile, "Running MetRobert on dev.tsv file")
+    #update program status
+    clam.common.status.write(statusfile, "Running MetRobert on dev.tsv file")
 
-   #run the dutch model on the dev file
-   main_dutch.main(dev_path)
+    #run the dutch model on the dev file
+    main_dutch.main(dev_path)
 
-   #update program status
-   clam.common.status.write(statusfile, "Creating output.tsv table")
+    #update program status
+    clam.common.status.write(statusfile, "Creating output.tsv table")
 
-   #prettify the output
-   outputgen.main(outputdir, pos_list, False, dev_path)
+    #prettify the output
+    outputgen.main(outputdir, pos_list, False, dev_path, sof2)
 
+    #cleanup
+    for file in os.listdir(outputdir):
+        if file.endswith("dev_float.txt") and str(unres) == "no":
+            try:
+                os.remove(outputdir + "/" + file)
+            except:
+                print("Error while deleting tok file : ", file)
+        elif file.endswith("dev_soft.txt") and str(sof) == "no":
+            try:
+                os.remove(outputdir + "/" + file)
+            except:
+                print("Error while deleting tok file : ", file)
+        elif file.endswith("_dev2.txt") or file.endswith("dev2.tsv") or file.endswith("soft2.txt"):
+            try:
+                os.remove(outputdir + "/" + file)
+            except:
+                print("Error while deleting tok file : ", file)
 
 elif str(inputfile).find(".xml") != -1:
     # ! CASE 2: ALPINO FILES SUPPLIED
@@ -181,21 +211,19 @@ elif str(inputfile).find(".xml") != -1:
     print("Cleaning up alpino xml files")
 
     #cleanup folders unneeded xml files
-    for dir in os.listdir(dev_location):
-        d = os.path.join(dev_location, dir)
+    for direc in os.listdir(dev_location):
+        d = os.path.join(dev_location, direc)
         if os.path.isdir(d):
             print("cleaning folder" + str(d))
             for file in os.listdir(d):
-                if file.endswith(".xml"):
+                if file.endswith(".xml") and str(alp) == "no":
                     try:
                         os.remove(d + "/" + file)
                     except:
-                        print("Error while deleting file : ", file)
-
+                        print("Error while deleting xml file : ", file)
 
     #get location of dev file to copy
     dev_file = dev_location + "/" + "dev.tsv"
-    print(dev_file)
 
     #update program status
     clam.common.status.write(statusfile, "Running MetRobert on dev.tsv file")
@@ -207,7 +235,31 @@ elif str(inputfile).find(".xml") != -1:
     clam.common.status.write(statusfile, "Creating output.tsv table")
 
     #prettify the output
-    outputgen.main(outputdir, pos_list, True, None)
+    outputgen.main(outputdir, pos_list, True, None, sof2)
+
+    #cleanup
+    for file in os.listdir(outputdir):
+        if file.endswith(".tok") and str(tok) == "no":
+            try:
+                os.remove(outputdir + "/" + file)
+            except:
+                print("Error while deleting tok file : ", file)
+        elif file.endswith("dev_float.txt") and str(unres) == "no":
+            try:
+                os.remove(outputdir + "/" + file)
+            except:
+                print("Error while deleting tok file : ", file)
+        elif file.endswith("dev_soft.txt") and str(sof) == "no":
+            try:
+                os.remove(outputdir + "/" + file)
+            except:
+                print("Error while deleting tok file : ", file)
+        elif file.endswith("_dev2.txt") or file.endswith("dev2.tsv") or file.endswith("soft2.txt"):
+            try:
+                os.remove(outputdir + "/" + file)
+            except:
+                print("Error while deleting tok file : ", file)
+
 
 elif str(inputfile).find(".tsv") == -1 and str(inputfile).find(".xml") == -1 and str(inputfile).find(".txt") != -1:
     # ! CASE 3: SENTENCE FILES SUPPLIED
@@ -225,48 +277,47 @@ elif str(inputfile).find(".tsv") == -1 and str(inputfile).find(".xml") == -1 and
 
     #helper function for file replacements
     def findReplace(directory, filePattern):
-       for path, dirs, files in os.walk(os.path.abspath(directory)):
-          for filename in fnmatch.filter(files, filePattern):
-             filepath = os.path.join(path, filename)
-             s = pathlib.Path(filepath).read_text()
-             if s[:2] == "' ":
-                 s = s.replace("' ","'", 1)
+        for path, dirs, files in os.walk(os.path.abspath(directory)):
+            for filename in fnmatch.filter(files, filePattern):
+                filepath = os.path.join(path, filename)
+                s = pathlib.Path(filepath).read_text()
+            if s[:2] == "' ":
+                s = s.replace("' ","'", 1)
 
-             #extra checks added
-             s = s.replace("''", "")
-             s = s.replace(" ,,", " ")
-             s = s.replace(",,", " ")
-             s = s.replace("\"", "")
-             s = s.replace(" , ", ", ")
-             s = s.replace(" \\ ", "\\")
-             s = s.replace(" / ", "/")
-             s = s.replace(" :", ":")
-             s = s.replace(",, ", "")
+            #extra checks added
+            s = s.replace("''", "")
+            s = s.replace(" ,,", " ")
+            s = s.replace(",,", " ")
+            s = s.replace("\"", "")
+            s = s.replace(" , ", ", ")
+            s = s.replace(" \\ ", "\\")
+            s = s.replace(" / ", "/")
+            s = s.replace(" :", ":")
+            s = s.replace(",, ", "")
 
-             #second round of extra checks
-             s = s.replace(", ,", "")
-             s = s.replace(" ?", "?")
-             s = s.replace(" - ","- ")
+            #second round of extra checks
+            s = s.replace(", ,", "")
+            s = s.replace(" ?", "?")
+            s = s.replace(" - ","- ")
 
-             #third round of extra checks
-             s = s.replace(" ( "," (")
-             s = s.replace(" ) ", ") ")
-             s = s.replace(" . ", ". ")
+            #third round of extra checks
+            s = s.replace(" ( "," (")
+            s = s.replace(" ) ", ") ")
+            s = s.replace(" . ", ". ")
 
-             s = s.replace(" ',","',")
-             s = s.replace(" '',","'',")
+            s = s.replace(" ',","',")
+            s = s.replace(" '',","'',")
 
-             s = s.replace(" ' ", " '", 1)
-             s = s.replace(" ' ", "' ", 1)
-             s = s.replace(" ' ", " '", 1)
-             s = s.replace(" ' ", "' ", 1)
-             s = s.replace(" ' ", " '", 1)
-             s = s.replace(" ' ", "' ", 1)
-             s = s.replace(" ' ", " '", 1)
-             s = s.replace(" ' ", "' ", 1)
-             with open(filepath, "w") as f:
-                 print(s)
-                 f.write(s)
+            s = s.replace(" ' ", " '", 1)
+            s = s.replace(" ' ", "' ", 1)
+            s = s.replace(" ' ", " '", 1)
+            s = s.replace(" ' ", "' ", 1)
+            s = s.replace(" ' ", " '", 1)
+            s = s.replace(" ' ", "' ", 1)
+            s = s.replace(" ' ", " '", 1)
+            s = s.replace(" ' ", "' ", 1)
+            with open(filepath, "w") as f:
+                f.write(s)
 
     #################################
     # WE USE ALPINO ON ALL OUR FILES#
@@ -346,17 +397,16 @@ elif str(inputfile).find(".tsv") == -1 and str(inputfile).find(".xml") == -1 and
     print("Cleaning up alpino xml files")
 
     #cleanup folders unneeded xml files
-    for dir in os.listdir(dev_location):
-        d = os.path.join(dev_location, dir)
+    for dire in os.listdir(dev_location):
+        d = os.path.join(dev_location, dire)
         if os.path.isdir(d):
             print("cleaning folder" + str(d))
             for file in os.listdir(d):
-                if file.endswith(".xml"):
+                if file.endswith(".xml") and str(alp) == "no":
                     try:
                         os.remove(d + "/" + file)
                     except:
-                        print("Error while deleting file : ", file)
-
+                        print("Error while deleting xml file : ", file)
 
     #get location of dev file to copy
     dev_file = dev_location + "/" + "dev.tsv"
@@ -372,7 +422,41 @@ elif str(inputfile).find(".tsv") == -1 and str(inputfile).find(".xml") == -1 and
     clam.common.status.write(statusfile, "Generating output.tsv file")
 
     #prettify output
-    outputgen.main(outputdir, pos_list, True, None)
+    outputgen.main(outputdir, pos_list, True, None, sof2)
+
+    #cleanup
+    for file in os.listdir(outputdir):
+        if file.endswith(".tok") and str(tok) == "no":
+            try:
+                os.remove(outputdir + "/" + file)
+            except:
+                print("Error while deteling tok file : ", file)
+        elif file.endswith("dev_float.txt") and str(unres) == "no":
+            try:
+                os.remove(outputdir + "/" + file)
+            except:
+                print("Error while deleting tok file : ", file)
+        elif file.endswith("dev_sof.txt") and str(sof) == "no":
+            try:
+                os.remove(outputdir + "/" + file)
+            except:
+                print("Error while deleting tok file : ", file)
+        elif file.endswith("_dev2.txt") or file.endswith("dev2.tsv") or file.endswith("soft2.txt"):
+            try:
+                os.remove(outputdir + "/" + file)
+            except:
+                print("Error while deleting tok file : ", file)
+
+#we clean empty folders inside our output directory
+def remove_empty_folders(path_abs):
+    walk = list(os.walk(path_abs))
+    for path, _, _ in walk[::-1]:
+        if len(os.listdir(path)) == 0:
+            os.rmdir(path)
+
+remove_empty_folders(outputdir)
+
+
 
 #for inputfile in clamdata.input:
 #   inputtemplate = inputfile.metadata.inputtemplate
