@@ -12,6 +12,7 @@ import sys
 ##############
 try:
     directory_name = sys.argv[1]
+    main(directory_name)
 except:
     print("no directory name was given")
 
@@ -28,7 +29,14 @@ warnings.filterwarnings("ignore")
 
 
 def findpos(child_of_child):
+    """ This function finds the right pos tag
 
+    Args:
+        child_of_child (xml element): the xml element to retrieve the postag from
+
+    Returns:
+        string: the pos tag saved in a capital string
+    """
     # we maken een postag aan
     pos_tag = "empty"
 
@@ -65,39 +73,97 @@ def findpos(child_of_child):
     return pos_tag
 
 
-def writeoutput(pos, word, index):
+def writeoutput(pos, word, index, f, sentence):
     global word_number
     word_number = word_number + 1
 
-    global sentence
-    #sentence = str(sentence)
-    
-    #! Correction of sentence mistakes
-    #if sentence[0:3] == "'' ":
-     #   sentence = sentence[3:]
-
-      #  index -= 1
-
     #! Calculate and write output
+    if str(sentence) != "NONE" and sentence[:3] == "'' ":
+        sentence = sentence[3:]
+        index = str(int(index)-1)
 
-    if not str(sentence) == "NONE":
-        if sentence[0:3] == "'' ":
-            sentence = sentence[3:]
-            index = str(int(index)-1)
-        
-    output = (
-        "COV_fragment01"
-        + " "
-        + str(word_number)
-        + "\t"
-        + "0"
-        + "\t"
-        + sentence
-        + "\t"
-        + pos
-        + "\t"
-        + str(int(index))
-    )
+    words = sentence.split()
+
+    word = word.replace(" ","")
+    word = word.replace(",,","")
+    word = word.replace("''","")
+    word = word.replace(",","")
+
+    index = int(index)
+
+    #check bounds of index
+    if index < len(words):
+        if words[index] == word:
+            i = 1
+        elif words[index] == word and index > 0 and words[index-1] == word:
+            index = index - 1
+        elif index + 1 < len(words) and words[index+1] == word:
+            index += 1
+
+        elif words[index] == word[1:]:
+            i = 1
+        elif index + 1 < len(words) and words[index+1] == word[1:]:
+            index += 1
+        elif index > 0 and words[index-1] == word[1:]:
+            index = index - 1
+
+        elif words[index].replace(",","") == word:
+            index = index
+        elif words[index].replace("\"","") == word:
+            index = index
+        elif words[index] == word.replace("\"",","):
+            index = index
+        elif words[index] == word.replace("\"",""):
+            index = index
+
+        elif index > 0 and words[index-1].replace(",","") == word:
+            index = index - 1
+        elif index > 0 and words[index-1].replace("\"","") == word:
+            index = index - 1
+        elif index > 0 and words[index-1] == word.replace("\"",","):
+            index = index - 1
+        elif index > 0 and words[index-1] == word.replace("\"",""):
+            index = index - 1
+
+        elif index + 1 < len(words) and words[index+1].replace(",","") == word:
+            index += 1
+        elif index + 1 < len(words) and words[index+1].replace("\"","") == word:
+            index += 1
+        elif index + 1 < len(words) and words[index+1] == word.replace("\"",","):
+            index += 1
+        elif index + 1 < len(words) and words[index+1] == word.replace("\"",""):
+            index += 1
+
+        elif words[index] == word[0:len(words[index])]:
+            i = 1
+        elif index > 0 and words[index-1] == word[0:len(words[index-1])]:
+            index = index - 1
+        elif index + 1 < len(words) and words[index+1] == word[0:len(words[index+1])]:
+            index += 1
+
+        elif words[index].replace(",","") == word.replace("\"",""):
+            i = 1
+
+        elif index > 0 and words[index-1].replace("'","") == word:
+            index = index - 1
+
+        elif index > 0 and words[index-1].replace("'","") == word.replace("'",""):
+            index = index - 1
+
+        elif index > 0 and words[index-1].replace("'","").replace(",","") == word:
+            index = index - 1
+
+            #else:
+                #print(word)
+                #print(words[index])
+                #if index > 0:
+                #    print(words[index-1])
+                #print("OTHER CASE")
+    elif index == len(words):
+        index = index - 1
+
+    output = "COV_fragment01" + " " + str(word_number) + "\t" + "0" + "\t" + sentence + "\t" + pos + "\t" + str(index)
+
     f.write(output + "\n")
 
 
@@ -108,282 +174,280 @@ def listdirs(path):
 ##################
 # GLOBAL VARIABLES#
 ##################
-sentence = ""
+def main(directory_name):
+    sentence = ""
 
-filenumber = 0
-parser = etree.XMLParser(ns_clean=True, remove_comments=True)
+    filenumber = 0
+    parser = etree.XMLParser(ns_clean=True, remove_comments=True)
 
-subdirectories = os.listdir(directory_name)
-for directory_d2_first in subdirectories:
-    if directory_d2_first.find("dev.tsv") == -1:
-        print(directory_d2_first)
-        directory_d2 = directory_name + "\\" + directory_d2_first
-        print(directory_d2)
+    subdirectories = directory_name
 
-        outputfile = directory_d2 + "\\dev.tsv"
-        print(outputfile)
-        f = open(outputfile, "w", encoding="utf-8")
+    outputfile = f'{subdirectories}/dev.tsv'
+    print(outputfile)
 
-        # ? Added begin sentence of .csv file
-        f.write("index	label	sentence	POS	w_index" + "\n")
+    with open(outputfile, "w", encoding="utf-8") as f:
+        f.write("index      label   sentence        POS     w_index" + "\n")
 
-        context = ""
-        context_counter = 0
+        for alpino_file in os.listdir(subdirectories):
+            if os.path.isdir(os.path.join(subdirectories, alpino_file)):
 
-        for filename in os.listdir(directory_d2):
-            if filename.endswith(".xml"):
+                dir = os.path.join(subdirectories, alpino_file)
 
-                filenumber = filenumber + 1
+                for filename in os.listdir(dir):
+                    if filename.endswith(".xml"):
 
-                filedirectory = directory_d2 + "\\" + filename
-                tree = etree.parse(filedirectory, parser)
-                root = tree.getroot()
+                        filenumber = filenumber + 1
 
-                sentence = ""
+                        filedirectory = f'{dir}/{filename}'
+                        tree = etree.parse(filedirectory, parser)
+                        root = tree.getroot()
 
-                ############################################
-                # PART 1: get obj subj verb and sent number #
-                ############################################
-                for alpino_ds in root.iter("alpino_ds"):
-                    for top in alpino_ds:
+                        sentence = ""
 
-                        # We test the sentence id's
-                        sent_id = top.get("sentid")
-                        if not str(sent_id) == "None":
-                            sentence = top.text
+                                            ############################################
+                                            # PART 1: get obj subj verb and sent number #
+                                            ############################################
+                        for alpino_ds in root.iter("alpino_ds"):
+                            for top in alpino_ds:
 
-                            # ? Fix the sentence we just received
-                            # escape csv problems
-                            sentence = sentence.replace("\n", "")
-                            # sentence fixes
-                            if sentence[0:1] == " ":
-                                sentence = sentence[1:]
+                                # We test the sentence id's
+                                sent_id = top.get("sentid")
+                                if str(sent_id) != "None":
+                                    sentence = top.text
 
-                            if sentence[0:1] == " ":
-                                sentence = sentence[1:]
+                                    # ? Fix the sentence we just received
+                                    # escape csv problems
+                                    sentence = sentence.replace("\n", "")
+                                                                    # sentence fixes
+                                    if sentence[:1] == " ":
+                                        sentence = sentence[1:]
 
-                            #if sentence[0:2] == ",,":
-                             #   sentence = sentence[2:]
+                                    if sentence[:1] == " ":
+                                        sentence = sentence[1:]
 
-                            #if sentence[0:3] == "'' ":
-                             #   sentence = sentence[3:]
+                                    if sentence[:1] == " ":
+                                        sentence = sentence[1:]
 
-                            if sentence[0:1] == " ":
-                                sentence = sentence[1:]
+                                    sentence = sentence.replace("''", "")
 
-                            sentence = sentence.replace("''", "")
+                                    sentence = sentence.replace(" ,,", " ")
 
-                            sentence = sentence.replace(" ,,", " ")
+                                    sentence = sentence.replace(",,", " ")
 
-                            sentence = sentence.replace(",,", " ")
+                                    sentence = sentence.replace("\"", "")
 
-                            sentence = sentence.replace("\"", "")
+                                    sentence = sentence.replace(" , ", ", ")
 
-                            if sentence[0:1] == " ":
-                                sentence = sentence[1:]
-                                
-                    for top in alpino_ds:
-                        for smain in top:
-                            ############
-                            # MAIN LEVEL#
-                            ############
-                            for child in smain:
-                                child_of_child = child.get("postag")
-                                if not str(child_of_child) == "None":  # empty
+                                    sentence = sentence.replace(" \\ ", "\\")
 
-                                    pos = findpos(child)
-                                    if pos != "empty":
-                                        # get word
-                                        word = child.get("word")
-                                        index = child.get("begin")
-                                        # call output function
-                                        writeoutput(pos, word, index)
+                                    sentence = sentence.replace(" / ","/")
 
-                                #########
-                                # LEVEL 2#
-                                #########
+                                    sentence = sentence.replace(" :",":")
 
-                                for childx in child:
-                                    child_of_child = childx.get("postag")
-                                    if not str(child_of_child) == "None":  # empty
+                                    sentence = sentence.replace(",, ","")
 
-                                        pos = findpos(childx)
-                                        if pos != "empty":
-                                            # get word
-                                            word = childx.get("word")
-                                            index = childx.get("begin")
-                                            # call output function
-                                            writeoutput(pos, word, index)
+                                    if sentence[:1] == " ":
+                                        sentence = sentence[1:]
 
-                                    #########
-                                    # LEVEL 3#
-                                    #########
+                                    sentence = sentence.replace(" , ", ", ")
+                                    sentence = sentence.replace(" ; ", "; ")
+                                    sentence = sentence.replace(" .", ".")
+                                    sentence = sentence.replace(" : ", ": ")
+                                    sentence = sentence.replace(" ( ", " (")
+                                    sentence = sentence.replace(" ) ", ") ")
+                                    sentence = sentence.replace(" )", ")")
+                                    sentence = sentence.replace(" ',", "',")
+                                    if sentence[:2] == "' ":
+                                        sentence = "'" + sentence[2:]
 
-                                    verbfound3 = False
-                                    for childy in childx:
-                                        child_of_child = childy.get("postag")
-                                        if not str(child_of_child) == "None":  # empty
+                                    qtcount = sentence.count(" ' ")
+                                    if qtcount in [2, 4, 6]:
+                                        sentence = sentence.replace(" ' ", " '", 1)
+                                        sentence = sentence.replace(" ' ", "' ", 1)
 
-                                            pos = findpos(childy)
+                                    else:
+                                        sentence = sentence.replace(" ' "," '",1)
+
+                                    sentence = sentence.replace(" '.","'.")
+                            for top in alpino_ds:
+                                for smain in top:
+                                                                    ############
+                                                                    # MAIN LEVEL#
+                                                                    ############
+                                    for child in smain:
+                                        child_of_child = child.get("postag")
+                                        if str(child_of_child) != "None":  # empty
+
+                                            pos = findpos(child)
                                             if pos != "empty":
                                                 # get word
-                                                word = childy.get("word")
-                                                index = childy.get("begin")
+                                                word = child.get("word")
+                                                index = child.get("begin")
                                                 # call output function
-                                                writeoutput(pos, word, index)
+                                                writeoutput(pos, word, index, f, sentence)
 
-                                        #########
-                                        # LEVEL 4#
-                                        #########
+                                                                            #########
+                                                                            # LEVEL 2#
+                                                                            #########
 
-                                        for childz in childy:
-                                            child_of_child = childz.get("postag")
-                                            if not str(child_of_child) == "None":  # empty
+                                        for childx in child:
+                                            child_of_child = childx.get("postag")
+                                            if str(child_of_child) != "None":  # empty
 
-                                                pos = findpos(childz)
+                                                pos = findpos(childx)
                                                 if pos != "empty":
                                                     # get word
-                                                    word = childz.get("word")
-                                                    index = childz.get("begin")
+                                                    word = childx.get("word")
+                                                    index = childx.get("begin")
                                                     # call output function
-                                                    writeoutput(pos, word, index)
+                                                    writeoutput(pos, word, index, f, sentence)
 
-                                            #########
-                                            # LEVEL 5#
-                                            #########
+                                                                                    #########
+                                                                                    # LEVEL 3#
+                                                                                    #########
 
-                                            for childa in childz:
-                                                child_of_child = childa.get("postag")
-                                                if (
-                                                    not str(child_of_child) == "None"
-                                                ):  # empty
+                                            for childy in childx:
+                                                child_of_child = childy.get("postag")
+                                                if str(child_of_child) != "None":  # empty
 
-                                                    pos = findpos(childa)
+                                                    pos = findpos(childy)
                                                     if pos != "empty":
                                                         # get word
-                                                        word = childa.get("word")
-                                                        index = childa.get("begin")
+                                                        word = childy.get("word")
+                                                        index = childy.get("begin")
                                                         # call output function
-                                                        writeoutput(pos, word, index)
+                                                        writeoutput(pos, word, index, f, sentence)
 
-                                                #########
-                                                # LEVEL 6#
-                                                #########
+                                                                                            #########
+                                                                                            # LEVEL 4#
+                                                                                            #########
 
-                                                for childb in childa:
-                                                    child_of_child = childb.get("postag")
-                                                    if (
-                                                        not str(child_of_child) == "None"
-                                                    ):  # empty
+                                                for childz in childy:
+                                                    child_of_child = childz.get("postag")
+                                                    if str(child_of_child) != "None":  # empty
 
-                                                        pos = findpos(childb)
+                                                        pos = findpos(childz)
                                                         if pos != "empty":
                                                             # get word
-                                                            word = childb.get("word")
-                                                            index = childb.get("begin")
+                                                            word = childz.get("word")
+                                                            index = childz.get("begin")
                                                             # call output function
-                                                            writeoutput(pos, word, index)
+                                                            writeoutput(pos, word, index, f, sentence)
 
-                                                    #########
-                                                    # LEVEL 7#
-                                                    #########
+                                                                                                    #########
+                                                                                                    # LEVEL 5#
+                                                                                                    #########
 
-                                                    for childc in childb:
-                                                        child_of_child = childc.get(
-                                                            "postag"
-                                                        )
-                                                        if (
-                                                            not str(child_of_child)
-                                                            == "None"
-                                                        ):  # empty
+                                                    for childa in childz:
+                                                        child_of_child = childa.get("postag")
+                                                        if str(child_of_child) != "None":  # empty
 
-                                                            pos = findpos(childc)
+                                                            pos = findpos(childa)
                                                             if pos != "empty":
                                                                 # get word
-                                                                word = childc.get("word")
-                                                                index = childc.get("begin")
+                                                                word = childa.get("word")
+                                                                index = childa.get("begin")
                                                                 # call output function
-                                                                writeoutput(pos, word, index)
+                                                                writeoutput(pos, word, index, f, sentence)
 
-                                                        ##########
-                                                        # LEVEL 8#
-                                                        ##########
+                                                                                                            #########
+                                                                                                            # LEVEL 6#
+                                                                                                            #########
 
-                                                        for childd in childc:
-                                                            child_of_child = childd.get(
-                                                                "postag"
-                                                            )
-                                                            if (
-                                                                not str(child_of_child)
-                                                                == "None"
-                                                            ):  # empty
+                                                        for childb in childa:
+                                                            child_of_child = childb.get("postag")
+                                                            if str(child_of_child) != "None":  # empty
 
-                                                                pos = findpos(childd)
+                                                                pos = findpos(childb)
                                                                 if pos != "empty":
                                                                     # get word
-                                                                    word = childd.get("word")
-                                                                    index = childd.get("begin")
+                                                                    word = childb.get("word")
+                                                                    index = childb.get("begin")
                                                                     # call output function
-                                                                    writeoutput(pos, word, index)
+                                                                    writeoutput(pos, word, index, f, sentence)
 
-                                                            ###########
-                                                            # LEVEL 9 #
-                                                            ###########
+                                                                                                                    #########
+                                                                                                                    # LEVEL 7#
+                                                                                                                    #########
 
-                                                            for childe in childd:
-                                                                child_of_child = childe.get(
+                                                            for childc in childb:
+                                                                child_of_child = childc.get(
                                                                     "postag"
                                                                 )
-                                                                if (
-                                                                    not str(child_of_child)
-                                                                    == "None"
-                                                                ):  # empty
+                                                                if str(child_of_child) != "None":  # empty
 
-                                                                    pos = findpos(childe)
+                                                                    pos = findpos(childc)
                                                                     if pos != "empty":
                                                                         # get word
-                                                                        word = childe.get("word")
-                                                                        index = childe.get("begin")
+                                                                        word = childc.get("word")
+                                                                        index = childc.get("begin")
                                                                         # call output function
-                                                                        writeoutput(pos, word, index)
+                                                                        writeoutput(pos, word, index, f, sentence)
 
-                                                                ############
-                                                                # LEVEL 10 #
-                                                                ############
-                                                                for childf in childe:
-                                                                    child_of_child = childf.get(
+                                                                                                                            ##########
+                                                                                                                            # LEVEL 8#
+                                                                                                                            ##########
+
+                                                                for childd in childc:
+                                                                    child_of_child = childd.get(
                                                                         "postag"
                                                                     )
-                                                                    if (
-                                                                        not str(child_of_child)
-                                                                        == "None"
-                                                                    ):  # empty
+                                                                    if str(child_of_child) != "None":  # empty
 
-                                                                        pos = findpos(childf)
+                                                                        pos = findpos(childd)
                                                                         if pos != "empty":
                                                                             # get word
-                                                                            word = childf.get("word")
-                                                                            index = childf.get("begin")
+                                                                            word = childd.get("word")
+                                                                            index = childd.get("begin")
                                                                             # call output function
-                                                                            writeoutput(pos, word, index)
+                                                                            writeoutput(pos, word, index, f, sentence)
 
-                                                                    for childg in childf:
-                                                                        child_of_child = childg.get(
+                                                                                                                                    ###########
+                                                                                                                                    # LEVEL 9 #
+                                                                                                                                    ###########
+
+                                                                    for childe in childd:
+                                                                        child_of_child = childe.get(
                                                                             "postag"
                                                                         )
-                                                                        if (
-                                                                            not str(child_of_child)
-                                                                            == "None"
-                                                                        ):  # empty
+                                                                        if str(child_of_child) != "None":  # empty
 
-                                                                            pos = findpos(childg)
+                                                                            pos = findpos(childe)
                                                                             if pos != "empty":
                                                                                 # get word
-                                                                                word = childg.get("word")
-                                                                                index = childg.get("begin")
+                                                                                word = childe.get("word")
+                                                                                index = childe.get("begin")
                                                                                 # call output function
-                                                                                writeoutput(pos, word, index)
+                                                                                writeoutput(pos, word, index, f, sentence)
 
+                                                                                                                                            ############
+                                                                                                                                            # LEVEL 10 #
+                                                                                                                                            ############
+                                                                        for childf in childe:
+                                                                            child_of_child = childf.get(
+                                                                                "postag"
+                                                                            )
+                                                                            if str(child_of_child) != "None":  # empty
 
-        f.close()
+                                                                                pos = findpos(childf)
+                                                                                if pos != "empty":
+                                                                                    # get word
+                                                                                    word = childf.get("word")
+                                                                                    index = childf.get("begin")
+                                                                                    # call output function
+                                                                                    writeoutput(pos, word, index, f, sentence)
+
+                                                                            for childg in childf:
+                                                                                child_of_child = childg.get(
+                                                                                    "postag"
+                                                                                )
+                                                                                if str(child_of_child) != "None":  # empty
+
+                                                                                    pos = findpos(childg)
+                                                                                    if pos != "empty":
+                                                                                        # get word
+                                                                                        word = childg.get("word")
+                                                                                        index = childg.get("begin")
+                                                                                        # call output function
+                                                                                        writeoutput(pos, word, index, f, sentence)
 
