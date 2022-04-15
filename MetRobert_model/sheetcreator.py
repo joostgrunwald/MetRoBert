@@ -24,7 +24,9 @@ previous_sentence = None
 pos_list = []
 met_list = []
 
-with open(os.path.join(location, 'output.tsv'), 'r') as output:
+sentences = []
+
+with open(os.path.join(location, 'output.tsv'), mode='r', encoding='utf-8') as output:
     for line in output:
         if line[0:5] != "index":
             splitted = line.split("\t")
@@ -37,6 +39,8 @@ with open(os.path.join(location, 'output.tsv'), 'r') as output:
                 print(previous_sentence)
                 print(met_list)
                 print(pos_list)
+                
+                sentences.append(sentence)
                 
                 previous_sentence = sentence
                 pos_list = []
@@ -54,7 +58,8 @@ with open(os.path.join(location, 'output.tsv'), 'r') as output:
                     met_list.append(index)
 
                 previous_sentence = sentence
-                
+
+print(sentences)          
 # TODO: open output.tsv file
 
 # TODO: save panda dataframe to google sheets
